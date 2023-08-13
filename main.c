@@ -85,6 +85,15 @@ unsigned char currentPlayerBlackText[] = {
 unsigned char currentPlayerWhiteText[] = {
     0x00, 0x00, 0x50, 0x6C, 0x61, 0x79, 0x65, 0x72, 0x00, 0x57, 0x68, 0x69, 0x74, 0x65, 0x00, 0x00
 };
+unsigned char clearText[] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+unsigned char whiteWins[] = {
+    0x00, 0x00, 0x00, 0x57, 0x68, 0x69, 0x74, 0x65, 0x00, 0x57, 0x69, 0x6E, 0x73, 0x00, 0x00, 0x00
+};
+unsigned char blackWins[] = {
+    0x00, 0x00, 0x00, 0x42, 0x6C, 0x61, 0x63, 0x6B, 0x00, 0x57, 0x69, 0x6E, 0x73, 0x00, 0x00, 0x00
+};
 unsigned char blackKing[] = {
   0xFF,0xFF,0xDB,0xFF,0x66,0xFF,0x81,0xFF,
   0x81,0xFF,0xC3,0xFF,0xFF,0xFF,0xFF,0xFF
@@ -143,14 +152,6 @@ void font() {
     font_init();
     min_font = font_load(font_ibm_fixed);
     font_set(min_font);
-}
-void printTurn() {
-    if (currentPlayer == BLACK_PLAYER){
-        set_win_tiles(2, 0, 16, 1, currentPlayerBlackText);
-    } else {
-        set_win_tiles(2, 0, 16, 1, currentPlayerWhiteText);
-    }
-    move_win(7, 136);
 }
 void printbkg() {
     set_bkg_data(1, 1, tile1);
@@ -302,7 +303,6 @@ bool hasValidCaptureMoves(UINT8 currentPlayer) {
     Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
     int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
     int numOpponentPieces = (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES;
-
     for (int i = 0; i < numPieces; i++) {
         if (isValidMove(pieces[i].x - 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x - 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
             isValidMove(pieces[i].x + 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x + 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
@@ -313,7 +313,9 @@ bool hasValidCaptureMoves(UINT8 currentPlayer) {
     }
     return false; // No valid capture moves found for any piece
 }
-bool hasValidNonCaptureMoves(Piece* pieces, int numPieces, UINT8 currentPlayer) {
+bool hasValidNonCaptureMoves(UINT8 currentPlayer) {
+    Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+    int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
     for (int i = 0; i < numPieces; i++) {
         if (isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
             isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
@@ -323,6 +325,32 @@ bool hasValidNonCaptureMoves(Piece* pieces, int numPieces, UINT8 currentPlayer) 
         }
     }
     return false; // No valid moves found for any piece
+}
+bool hasValidMoves(UINT8 currentPlayer) {
+    bool hasValidNonCapture = hasValidNonCaptureMoves(currentPlayer);
+    bool hasValidCapture = hasValidCaptureMoves(currentPlayer);
+    if (hasValidNonCapture || hasValidCapture) {
+        return true; // No valid moves
+    }
+    return false; // Has valid moves
+}
+void printTurn() {
+    if (hasValidMoves(currentPlayer)){
+        if (currentPlayer == BLACK_PLAYER){
+            set_win_tiles(2, 0, 16, 1, currentPlayerBlackText);
+        } else {
+            set_win_tiles(2, 0, 16, 1, currentPlayerWhiteText);
+        }
+        move_win(7, 136);
+    } else {
+        set_win_tiles(2, 0, 16, 1, clearText);
+        if (currentPlayer == BLACK_PLAYER){
+            set_win_tiles(2, 8, 16, 1, whiteWins);
+        } else {
+            set_win_tiles(2, 8, 16, 1, blackWins);
+        }
+        move_win(7, 7);
+    }
 }
 void main() {
     font();
@@ -367,7 +395,6 @@ void main() {
                 Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
                 int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
                 int numOpponentPieces = (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES;
-
                 // Calculate the distance moved in x and y direction
                 int dx = (cursorx - 4) - pieces[selectedCoords].x;
                 int dy = (cursory - 4) - pieces[selectedCoords].y;

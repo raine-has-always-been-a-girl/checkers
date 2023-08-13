@@ -9,6 +9,8 @@
 ; Public variables in this module
 ;--------------------------------------------------------
 	.globl _main
+	.globl _printTurn
+	.globl _hasValidMoves
 	.globl _hasValidNonCaptureMoves
 	.globl _hasValidCaptureMoves
 	.globl _checkCollision
@@ -19,7 +21,6 @@
 	.globl _printBlack
 	.globl _printSquare
 	.globl _printbkg
-	.globl _printTurn
 	.globl _font
 	.globl _dpad
 	.globl _promoteToKing
@@ -38,6 +39,9 @@
 	.globl _blackPieces
 	.globl _whiteKing
 	.globl _blackKing
+	.globl _blackWins
+	.globl _whiteWins
+	.globl _clearText
 	.globl _currentPlayerWhiteText
 	.globl _currentPlayerBlackText
 	.globl _white_piece
@@ -133,6 +137,15 @@ _currentPlayerBlackText::
 G$currentPlayerWhiteText$0_0$0==.
 _currentPlayerWhiteText::
 	.ds 16
+G$clearText$0_0$0==.
+_clearText::
+	.ds 16
+G$whiteWins$0_0$0==.
+_whiteWins::
+	.ds 16
+G$blackWins$0_0$0==.
+_blackWins::
+	.ds 16
 G$blackKing$0_0$0==.
 _blackKing::
 	.ds 16
@@ -167,14 +180,14 @@ _whitePieces::
 	.area _CODE
 	G$moveSquare$0$0	= .
 	.globl	G$moveSquare$0$0
-	C$main.c$96$0_0$125	= .
-	.globl	C$main.c$96$0_0$125
-;main.c:96: void moveSquare() {
+	C$main.c$105$0_0$125	= .
+	.globl	C$main.c$105$0_0$125
+;main.c:105: void moveSquare() {
 ;	---------------------------------
 ; Function moveSquare
 ; ---------------------------------
 _moveSquare::
-;main.c:97: move_sprite(0, cursorx - 8, cursory - 8);
+;main.c:106: move_sprite(0, cursorx - 8, cursory - 8);
 	ld	a, (#_cursory)
 	add	a, #0xf8
 	ld	b, a
@@ -187,7 +200,7 @@ _moveSquare::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:98: move_sprite(1, cursorx + 0, cursory - 8);
+;main.c:107: move_sprite(1, cursorx + 0, cursory - 8);
 	ld	a, (#_cursory)
 	add	a, #0xf8
 	ld	b, a
@@ -199,7 +212,7 @@ _moveSquare::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:99: move_sprite(2, cursorx - 8, cursory + 0);
+;main.c:108: move_sprite(2, cursorx - 8, cursory + 0);
 	ld	hl, #_cursory
 	ld	b, (hl)
 	ld	a, (#_cursorx)
@@ -211,7 +224,7 @@ _moveSquare::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:100: move_sprite(3, cursorx + 0, cursory + 0);
+;main.c:109: move_sprite(3, cursorx + 0, cursory + 0);
 	ld	hl, #_cursory
 	ld	b, (hl)
 	ld	hl, #_cursorx
@@ -222,22 +235,22 @@ _moveSquare::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-	C$main.c$100$3_0$125	= .
-	.globl	C$main.c$100$3_0$125
-;main.c:100: move_sprite(3, cursorx + 0, cursory + 0);
-	C$main.c$101$3_0$125	= .
-	.globl	C$main.c$101$3_0$125
-;main.c:101: }
-	C$main.c$101$3_0$125	= .
-	.globl	C$main.c$101$3_0$125
+	C$main.c$109$3_0$125	= .
+	.globl	C$main.c$109$3_0$125
+;main.c:109: move_sprite(3, cursorx + 0, cursory + 0);
+	C$main.c$110$3_0$125	= .
+	.globl	C$main.c$110$3_0$125
+;main.c:110: }
+	C$main.c$110$3_0$125	= .
+	.globl	C$main.c$110$3_0$125
 	XG$moveSquare$0$0	= .
 	.globl	XG$moveSquare$0$0
 	ret
 	G$promoteToKing$0$0	= .
 	.globl	G$promoteToKing$0$0
-	C$main.c$117$3_0$140	= .
-	.globl	C$main.c$117$3_0$140
-;main.c:117: void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
+	C$main.c$126$3_0$140	= .
+	.globl	C$main.c$126$3_0$140
+;main.c:126: void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
 ;	---------------------------------
 ; Function promoteToKing
 ; ---------------------------------
@@ -251,9 +264,9 @@ _promoteToKing::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-	C$main.c$118$3_0$141	= .
-	.globl	C$main.c$118$3_0$141
-;main.c:118: for (int i = 0; i < numPieces; i++) {
+	C$main.c$127$3_0$141	= .
+	.globl	C$main.c$127$3_0$141
+;main.c:127: for (int i = 0; i < numPieces; i++) {
 	ldhl	sp,	#10
 	ld	a, (hl)
 	dec	a
@@ -286,9 +299,9 @@ _promoteToKing::
 	scf
 00148$:
 	jr	NC, 00112$
-	C$main.c$119$2_0$140	= .
-	.globl	C$main.c$119$2_0$140
-;main.c:119: if (pieces[i].y == 28 && player == WHITE_PLAYER) {
+	C$main.c$128$2_0$140	= .
+	.globl	C$main.c$128$2_0$140
+;main.c:128: if (pieces[i].y == 28 && player == WHITE_PLAYER) {
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -313,14 +326,14 @@ _promoteToKing::
 	ld	a, (hl)
 	ldhl	sp,	#3
 	ld	(hl), a
-	C$main.c$120$2_0$140	= .
-	.globl	C$main.c$120$2_0$140
-;main.c:120: pieces[i].isKing = true;
+	C$main.c$129$2_0$140	= .
+	.globl	C$main.c$129$2_0$140
+;main.c:129: pieces[i].isKing = true;
 	inc	de
 	inc	de
-	C$main.c$119$3_0$141	= .
-	.globl	C$main.c$119$3_0$141
-;main.c:119: if (pieces[i].y == 28 && player == WHITE_PLAYER) {
+	C$main.c$128$3_0$141	= .
+	.globl	C$main.c$128$3_0$141
+;main.c:128: if (pieces[i].y == 28 && player == WHITE_PLAYER) {
 	ldhl	sp,	#3
 	ld	a, (hl)
 	sub	a, #0x1c
@@ -329,16 +342,16 @@ _promoteToKing::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00105$
-	C$main.c$120$4_0$142	= .
-	.globl	C$main.c$120$4_0$142
-;main.c:120: pieces[i].isKing = true;
+	C$main.c$129$4_0$142	= .
+	.globl	C$main.c$129$4_0$142
+;main.c:129: pieces[i].isKing = true;
 	ld	a, #0x01
 	ld	(de), a
 	jr	00111$
 00105$:
-	C$main.c$121$3_0$141	= .
-	.globl	C$main.c$121$3_0$141
-;main.c:121: } else if (pieces[i].y == 140 && player == BLACK_PLAYER) {
+	C$main.c$130$3_0$141	= .
+	.globl	C$main.c$130$3_0$141
+;main.c:130: } else if (pieces[i].y == 140 && player == BLACK_PLAYER) {
 	ldhl	sp,	#3
 	ld	a, (hl)
 	sub	a, #0x8c
@@ -347,227 +360,171 @@ _promoteToKing::
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00111$
-	C$main.c$122$4_0$143	= .
-	.globl	C$main.c$122$4_0$143
-;main.c:122: pieces[i].isKing = true;
+	C$main.c$131$4_0$143	= .
+	.globl	C$main.c$131$4_0$143
+;main.c:131: pieces[i].isKing = true;
 	ld	a, #0x01
 	ld	(de), a
 00111$:
-	C$main.c$118$2_0$140	= .
-	.globl	C$main.c$118$2_0$140
-;main.c:118: for (int i = 0; i < numPieces; i++) {
+	C$main.c$127$2_0$140	= .
+	.globl	C$main.c$127$2_0$140
+;main.c:127: for (int i = 0; i < numPieces; i++) {
 	inc	bc
 	jr	00110$
 00112$:
-	C$main.c$125$2_0$140	= .
-	.globl	C$main.c$125$2_0$140
-;main.c:125: }
+	C$main.c$134$2_0$140	= .
+	.globl	C$main.c$134$2_0$140
+;main.c:134: }
 	add	sp, #8
 	pop	hl
 	inc	sp
 	jp	(hl)
 	G$dpad$0$0	= .
 	.globl	G$dpad$0$0
-	C$main.c$126$2_0$144	= .
-	.globl	C$main.c$126$2_0$144
-;main.c:126: void dpad() {
+	C$main.c$135$2_0$144	= .
+	.globl	C$main.c$135$2_0$144
+;main.c:135: void dpad() {
 ;	---------------------------------
 ; Function dpad
 ; ---------------------------------
 _dpad::
-	C$main.c$127$1_0$144	= .
-	.globl	C$main.c$127$1_0$144
-;main.c:127: if (joypad_input & J_RIGHT) {
+	C$main.c$136$1_0$144	= .
+	.globl	C$main.c$136$1_0$144
+;main.c:136: if (joypad_input & J_RIGHT) {
 	ld	hl, #_joypad_input
 	ld	c, (hl)
 	bit	0, c
 	jr	Z, 00102$
-	C$main.c$128$2_0$145	= .
-	.globl	C$main.c$128$2_0$145
-;main.c:128: cursorx = cursorx + SQUARE_SIZE;
+	C$main.c$137$2_0$145	= .
+	.globl	C$main.c$137$2_0$145
+;main.c:137: cursorx = cursorx + SQUARE_SIZE;
 	ld	hl, #_cursorx
 	ld	a, (hl)
 	add	a, #0x10
 	ld	(hl), a
 00102$:
-	C$main.c$130$1_0$144	= .
-	.globl	C$main.c$130$1_0$144
-;main.c:130: if (joypad_input & J_LEFT) {
+	C$main.c$139$1_0$144	= .
+	.globl	C$main.c$139$1_0$144
+;main.c:139: if (joypad_input & J_LEFT) {
 	bit	1, c
 	jr	Z, 00104$
-	C$main.c$131$2_0$146	= .
-	.globl	C$main.c$131$2_0$146
-;main.c:131: cursorx = cursorx - SQUARE_SIZE;
+	C$main.c$140$2_0$146	= .
+	.globl	C$main.c$140$2_0$146
+;main.c:140: cursorx = cursorx - SQUARE_SIZE;
 	ld	hl, #_cursorx
 	ld	a, (hl)
 	add	a, #0xf0
 	ld	(hl), a
 00104$:
-	C$main.c$133$1_0$144	= .
-	.globl	C$main.c$133$1_0$144
-;main.c:133: if (joypad_input & J_UP) {
+	C$main.c$142$1_0$144	= .
+	.globl	C$main.c$142$1_0$144
+;main.c:142: if (joypad_input & J_UP) {
 	bit	2, c
 	jr	Z, 00106$
-	C$main.c$134$2_0$147	= .
-	.globl	C$main.c$134$2_0$147
-;main.c:134: cursory = cursory - SQUARE_SIZE;
+	C$main.c$143$2_0$147	= .
+	.globl	C$main.c$143$2_0$147
+;main.c:143: cursory = cursory - SQUARE_SIZE;
 	ld	hl, #_cursory
 	ld	a, (hl)
 	add	a, #0xf0
 	ld	(hl), a
 00106$:
-	C$main.c$136$1_0$144	= .
-	.globl	C$main.c$136$1_0$144
-;main.c:136: if (joypad_input & J_DOWN) {
+	C$main.c$145$1_0$144	= .
+	.globl	C$main.c$145$1_0$144
+;main.c:145: if (joypad_input & J_DOWN) {
 	bit	3, c
 	jp	Z,_moveSquare
-	C$main.c$137$2_0$148	= .
-	.globl	C$main.c$137$2_0$148
-;main.c:137: cursory = cursory + SQUARE_SIZE;
+	C$main.c$146$2_0$148	= .
+	.globl	C$main.c$146$2_0$148
+;main.c:146: cursory = cursory + SQUARE_SIZE;
 	ld	hl, #_cursory
 	ld	a, (hl)
 	add	a, #0x10
 	ld	(hl), a
-	C$main.c$139$1_0$144	= .
-	.globl	C$main.c$139$1_0$144
-;main.c:139: moveSquare();
-	C$main.c$140$1_0$144	= .
-	.globl	C$main.c$140$1_0$144
-;main.c:140: }
-	C$main.c$140$1_0$144	= .
-	.globl	C$main.c$140$1_0$144
+	C$main.c$148$1_0$144	= .
+	.globl	C$main.c$148$1_0$144
+;main.c:148: moveSquare();
+	C$main.c$149$1_0$144	= .
+	.globl	C$main.c$149$1_0$144
+;main.c:149: }
+	C$main.c$149$1_0$144	= .
+	.globl	C$main.c$149$1_0$144
 	XG$dpad$0$0	= .
 	.globl	XG$dpad$0$0
 	jp	_moveSquare
 	G$font$0$0	= .
 	.globl	G$font$0$0
-	C$main.c$141$1_0$149	= .
-	.globl	C$main.c$141$1_0$149
-;main.c:141: void font() {
+	C$main.c$150$1_0$149	= .
+	.globl	C$main.c$150$1_0$149
+;main.c:150: void font() {
 ;	---------------------------------
 ; Function font
 ; ---------------------------------
 _font::
-	C$main.c$143$1_0$149	= .
-	.globl	C$main.c$143$1_0$149
-;main.c:143: font_init();
+	C$main.c$152$1_0$149	= .
+	.globl	C$main.c$152$1_0$149
+;main.c:152: font_init();
 	call	_font_init
-	C$main.c$144$1_0$149	= .
-	.globl	C$main.c$144$1_0$149
-;main.c:144: min_font = font_load(font_ibm_fixed);
+	C$main.c$153$1_0$149	= .
+	.globl	C$main.c$153$1_0$149
+;main.c:153: min_font = font_load(font_ibm_fixed);
 	ld	de, #_font_ibm_fixed
 	push	de
 	call	_font_load
 	pop	hl
-	C$main.c$145$1_0$149	= .
-	.globl	C$main.c$145$1_0$149
-;main.c:145: font_set(min_font);
+	C$main.c$154$1_0$149	= .
+	.globl	C$main.c$154$1_0$149
+;main.c:154: font_set(min_font);
 	push	de
 	call	_font_set
 	pop	hl
-	C$main.c$146$1_0$149	= .
-	.globl	C$main.c$146$1_0$149
-;main.c:146: }
-	C$main.c$146$1_0$149	= .
-	.globl	C$main.c$146$1_0$149
+	C$main.c$155$1_0$149	= .
+	.globl	C$main.c$155$1_0$149
+;main.c:155: }
+	C$main.c$155$1_0$149	= .
+	.globl	C$main.c$155$1_0$149
 	XG$font$0$0	= .
 	.globl	XG$font$0$0
 	ret
-	G$printTurn$0$0	= .
-	.globl	G$printTurn$0$0
-	C$main.c$147$1_0$150	= .
-	.globl	C$main.c$147$1_0$150
-;main.c:147: void printTurn() {
-;	---------------------------------
-; Function printTurn
-; ---------------------------------
-_printTurn::
-	C$main.c$148$1_0$150	= .
-	.globl	C$main.c$148$1_0$150
-;main.c:148: if (currentPlayer == BLACK_PLAYER){
-	ld	a, (#_currentPlayer)
-	or	a, a
-	jr	NZ, 00102$
-	C$main.c$149$2_0$151	= .
-	.globl	C$main.c$149$2_0$151
-;main.c:149: set_win_tiles(2, 0, 16, 1, currentPlayerBlackText);
-	ld	de, #_currentPlayerBlackText
-	push	de
-	ld	hl, #0x110
-	push	hl
-	ld	hl, #0x02
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-	jr	00103$
-00102$:
-	C$main.c$151$2_0$152	= .
-	.globl	C$main.c$151$2_0$152
-;main.c:151: set_win_tiles(2, 0, 16, 1, currentPlayerWhiteText);
-	ld	de, #_currentPlayerWhiteText
-	push	de
-	ld	hl, #0x110
-	push	hl
-	ld	hl, #0x02
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-00103$:
-;c:/gbdk/include/gb/gb.h:1468: WX_REG=x, WY_REG=y;
-	ld	a, #0x07
-	ldh	(_WX_REG + 0), a
-	ld	a, #0x88
-	ldh	(_WY_REG + 0), a
-	C$main.c$153$3_0$150	= .
-	.globl	C$main.c$153$3_0$150
-;main.c:153: move_win(7, 136);
-	C$main.c$154$3_0$150	= .
-	.globl	C$main.c$154$3_0$150
-;main.c:154: }
-	C$main.c$154$3_0$150	= .
-	.globl	C$main.c$154$3_0$150
-	XG$printTurn$0$0	= .
-	.globl	XG$printTurn$0$0
-	ret
 	G$printbkg$0$0	= .
 	.globl	G$printbkg$0$0
-	C$main.c$155$3_0$156	= .
-	.globl	C$main.c$155$3_0$156
-;main.c:155: void printbkg() {
+	C$main.c$156$1_0$150	= .
+	.globl	C$main.c$156$1_0$150
+;main.c:156: void printbkg() {
 ;	---------------------------------
 ; Function printbkg
 ; ---------------------------------
 _printbkg::
-	C$main.c$156$1_0$156	= .
-	.globl	C$main.c$156$1_0$156
-;main.c:156: set_bkg_data(1, 1, tile1);
+	C$main.c$157$1_0$150	= .
+	.globl	C$main.c$157$1_0$150
+;main.c:157: set_bkg_data(1, 1, tile1);
 	ld	de, #_tile1
 	push	de
 	ld	hl, #0x101
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-	C$main.c$157$1_0$156	= .
-	.globl	C$main.c$157$1_0$156
-;main.c:157: set_bkg_data(2, 1, tile2);
+	C$main.c$158$1_0$150	= .
+	.globl	C$main.c$158$1_0$150
+;main.c:158: set_bkg_data(2, 1, tile2);
 	ld	de, #_tile2
 	push	de
 	ld	hl, #0x102
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-	C$main.c$158$1_0$156	= .
-	.globl	C$main.c$158$1_0$156
-;main.c:158: set_bkg_data(3, 1, tile3);
+	C$main.c$159$1_0$150	= .
+	.globl	C$main.c$159$1_0$150
+;main.c:159: set_bkg_data(3, 1, tile3);
 	ld	de, #_tile3
 	push	de
 	ld	hl, #0x103
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-	C$main.c$159$1_0$156	= .
-	.globl	C$main.c$159$1_0$156
-;main.c:159: set_bkg_tiles(0, 0, 20, 18, map);
+	C$main.c$160$1_0$150	= .
+	.globl	C$main.c$160$1_0$150
+;main.c:160: set_bkg_tiles(0, 0, 20, 18, map);
 	ld	de, #_map
 	push	de
 	ld	hl, #0x1214
@@ -577,26 +534,26 @@ _printbkg::
 	push	af
 	call	_set_bkg_tiles
 	add	sp, #6
-	C$main.c$160$1_0$156	= .
-	.globl	C$main.c$160$1_0$156
-;main.c:160: }
-	C$main.c$160$1_0$156	= .
-	.globl	C$main.c$160$1_0$156
+	C$main.c$161$1_0$150	= .
+	.globl	C$main.c$161$1_0$150
+;main.c:161: }
+	C$main.c$161$1_0$150	= .
+	.globl	C$main.c$161$1_0$150
 	XG$printbkg$0$0	= .
 	.globl	XG$printbkg$0$0
 	ret
 	G$printSquare$0$0	= .
 	.globl	G$printSquare$0$0
-	C$main.c$161$1_0$157	= .
-	.globl	C$main.c$161$1_0$157
-;main.c:161: void printSquare() {
+	C$main.c$162$1_0$151	= .
+	.globl	C$main.c$162$1_0$151
+;main.c:162: void printSquare() {
 ;	---------------------------------
 ; Function printSquare
 ; ---------------------------------
 _printSquare::
-	C$main.c$162$1_0$157	= .
-	.globl	C$main.c$162$1_0$157
-;main.c:162: set_sprite_data(0, 1, squareTL);
+	C$main.c$163$1_0$151	= .
+	.globl	C$main.c$163$1_0$151
+;main.c:163: set_sprite_data(0, 1, squareTL);
 	ld	de, #_squareTL
 	push	de
 	xor	a, a
@@ -604,27 +561,27 @@ _printSquare::
 	push	af
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$163$1_0$157	= .
-	.globl	C$main.c$163$1_0$157
-;main.c:163: set_sprite_data(1, 1, squareTR);
+	C$main.c$164$1_0$151	= .
+	.globl	C$main.c$164$1_0$151
+;main.c:164: set_sprite_data(1, 1, squareTR);
 	ld	de, #_squareTR
 	push	de
 	ld	hl, #0x101
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$164$1_0$157	= .
-	.globl	C$main.c$164$1_0$157
-;main.c:164: set_sprite_data(2, 1, squareBL);
+	C$main.c$165$1_0$151	= .
+	.globl	C$main.c$165$1_0$151
+;main.c:165: set_sprite_data(2, 1, squareBL);
 	ld	de, #_squareBL
 	push	de
 	ld	hl, #0x102
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$165$1_0$157	= .
-	.globl	C$main.c$165$1_0$157
-;main.c:165: set_sprite_data(3, 1, squareBR);
+	C$main.c$166$1_0$151	= .
+	.globl	C$main.c$166$1_0$151
+;main.c:166: set_sprite_data(3, 1, squareBR);
 	ld	de, #_squareBR
 	push	de
 	ld	a, #0x01
@@ -644,48 +601,48 @@ _printSquare::
 	ld	(hl), #0x02
 	ld	hl, #(_shadow_OAM + 14)
 	ld	(hl), #0x03
-	C$main.c$170$1_0$157	= .
-	.globl	C$main.c$170$1_0$157
-;main.c:170: moveSquare();
-	C$main.c$171$1_0$157	= .
-	.globl	C$main.c$171$1_0$157
-;main.c:171: }
-	C$main.c$171$1_0$157	= .
-	.globl	C$main.c$171$1_0$157
+	C$main.c$171$1_0$151	= .
+	.globl	C$main.c$171$1_0$151
+;main.c:171: moveSquare();
+	C$main.c$172$1_0$151	= .
+	.globl	C$main.c$172$1_0$151
+;main.c:172: }
+	C$main.c$172$1_0$151	= .
+	.globl	C$main.c$172$1_0$151
 	XG$printSquare$0$0	= .
 	.globl	XG$printSquare$0$0
 	jp	_moveSquare
 	G$printBlack$0$0	= .
 	.globl	G$printBlack$0$0
-	C$main.c$172$1_0$170	= .
-	.globl	C$main.c$172$1_0$170
-;main.c:172: void printBlack() {
+	C$main.c$173$1_0$164	= .
+	.globl	C$main.c$173$1_0$164
+;main.c:173: void printBlack() {
 ;	---------------------------------
 ; Function printBlack
 ; ---------------------------------
 _printBlack::
 	add	sp, #-6
-	C$main.c$173$1_0$170	= .
-	.globl	C$main.c$173$1_0$170
-;main.c:173: set_sprite_data(4, 12, black_piece);
+	C$main.c$174$1_0$164	= .
+	.globl	C$main.c$174$1_0$164
+;main.c:174: set_sprite_data(4, 12, black_piece);
 	ld	de, #_black_piece
 	push	de
 	ld	hl, #0xc04
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$174$1_0$170	= .
-	.globl	C$main.c$174$1_0$170
-;main.c:174: set_sprite_data(8, 12, blackKing);
+	C$main.c$175$1_0$164	= .
+	.globl	C$main.c$175$1_0$164
+;main.c:175: set_sprite_data(8, 12, blackKing);
 	ld	de, #_blackKing
 	push	de
 	ld	hl, #0xc08
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$176$3_0$172	= .
-	.globl	C$main.c$176$3_0$172
-;main.c:176: for (int i = 0; i < 12; i++){
+	C$main.c$177$3_0$166	= .
+	.globl	C$main.c$177$3_0$166
+;main.c:177: for (int i = 0; i < 12; i++){
 	xor	a, a
 	ldhl	sp,	#4
 	ld	(hl+), a
@@ -710,9 +667,9 @@ _printBlack::
 	scf
 00130$:
 	jp	NC, 00111$
-	C$main.c$177$3_0$172	= .
-	.globl	C$main.c$177$3_0$172
-;main.c:177: if (blackPieces[i].isKing) {
+	C$main.c$178$3_0$166	= .
+	.globl	C$main.c$178$3_0$166
+;main.c:178: if (blackPieces[i].isKing) {
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	c, a
@@ -728,19 +685,19 @@ _printBlack::
 	ld	a, (hl)
 	ldhl	sp,	#2
 	ld	(hl), a
-	C$main.c$178$2_0$170	= .
-	.globl	C$main.c$178$2_0$170
-;main.c:178: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
+	C$main.c$179$2_0$164	= .
+	.globl	C$main.c$179$2_0$164
+;main.c:179: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
 	ldhl	sp,	#4
 	ld	a, (hl-)
 	add	a, #0x04
-	C$main.c$177$3_0$172	= .
-	.globl	C$main.c$177$3_0$172
-;main.c:177: if (blackPieces[i].isKing) {
+	C$main.c$178$3_0$166	= .
+	.globl	C$main.c$178$3_0$166
+;main.c:178: if (blackPieces[i].isKing) {
 	ld	(hl-), a
 	bit	0, (hl)
 	jr	Z, 00102$
-;main.c:178: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
+;main.c:179: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
 ;c:/gbdk/include/gb/gb.h:1602: shadow_OAM[nb].tile=tile;
 	inc	hl
 	ld	a, (hl-)
@@ -779,12 +736,12 @@ _printBlack::
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x08
-	C$main.c$178$3_0$172	= .
-	.globl	C$main.c$178$3_0$172
-;main.c:178: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
+	C$main.c$179$3_0$166	= .
+	.globl	C$main.c$179$3_0$166
+;main.c:179: set_sprite_tile(i + 4, 8); // Use the black king sprite tile
 	jr	00103$
 00102$:
-;main.c:180: set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
+;main.c:181: set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
 ;c:/gbdk/include/gb/gb.h:1602: shadow_OAM[nb].tile=tile;
 	ldhl	sp,	#3
 	ld	a, (hl-)
@@ -823,11 +780,11 @@ _printBlack::
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x04
-	C$main.c$180$3_0$172	= .
-	.globl	C$main.c$180$3_0$172
-;main.c:180: set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
+	C$main.c$181$3_0$166	= .
+	.globl	C$main.c$181$3_0$166
+;main.c:181: set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
 00103$:
-;main.c:182: move_sprite(i + 4, blackPieces[i].x, blackPieces[i].y);
+;main.c:183: move_sprite(i + 4, blackPieces[i].x, blackPieces[i].y);
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	c, a
@@ -864,9 +821,9 @@ _printBlack::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), c
-	C$main.c$176$2_0$171	= .
-	.globl	C$main.c$176$2_0$171
-;main.c:176: for (int i = 0; i < 12; i++){
+	C$main.c$177$2_0$165	= .
+	.globl	C$main.c$177$2_0$165
+;main.c:177: for (int i = 0; i < 12; i++){
 	ldhl	sp,	#4
 	inc	(hl)
 	jp	NZ,00109$
@@ -874,46 +831,46 @@ _printBlack::
 	inc	(hl)
 	jp	00109$
 00111$:
-	C$main.c$184$2_0$170	= .
-	.globl	C$main.c$184$2_0$170
-;main.c:184: }
+	C$main.c$185$2_0$164	= .
+	.globl	C$main.c$185$2_0$164
+;main.c:185: }
 	add	sp, #6
-	C$main.c$184$2_0$170	= .
-	.globl	C$main.c$184$2_0$170
+	C$main.c$185$2_0$164	= .
+	.globl	C$main.c$185$2_0$164
 	XG$printBlack$0$0	= .
 	.globl	XG$printBlack$0$0
 	ret
 	G$printWhite$0$0	= .
 	.globl	G$printWhite$0$0
-	C$main.c$185$2_0$184	= .
-	.globl	C$main.c$185$2_0$184
-;main.c:185: void printWhite() {
+	C$main.c$186$2_0$178	= .
+	.globl	C$main.c$186$2_0$178
+;main.c:186: void printWhite() {
 ;	---------------------------------
 ; Function printWhite
 ; ---------------------------------
 _printWhite::
 	add	sp, #-6
-	C$main.c$186$1_0$184	= .
-	.globl	C$main.c$186$1_0$184
-;main.c:186: set_sprite_data(5, 12, white_piece);
+	C$main.c$187$1_0$178	= .
+	.globl	C$main.c$187$1_0$178
+;main.c:187: set_sprite_data(5, 12, white_piece);
 	ld	de, #_white_piece
 	push	de
 	ld	hl, #0xc05
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$187$1_0$184	= .
-	.globl	C$main.c$187$1_0$184
-;main.c:187: set_sprite_data(20, 12, whiteKing);
+	C$main.c$188$1_0$178	= .
+	.globl	C$main.c$188$1_0$178
+;main.c:188: set_sprite_data(20, 12, whiteKing);
 	ld	de, #_whiteKing
 	push	de
 	ld	hl, #0xc14
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-	C$main.c$189$3_0$186	= .
-	.globl	C$main.c$189$3_0$186
-;main.c:189: for (int i = 0; i < 12; i++){
+	C$main.c$190$3_0$180	= .
+	.globl	C$main.c$190$3_0$180
+;main.c:190: for (int i = 0; i < 12; i++){
 	xor	a, a
 	ldhl	sp,	#4
 	ld	(hl+), a
@@ -938,9 +895,9 @@ _printWhite::
 	scf
 00130$:
 	jp	NC, 00111$
-	C$main.c$190$3_0$186	= .
-	.globl	C$main.c$190$3_0$186
-;main.c:190: if (whitePieces[i].isKing) {
+	C$main.c$191$3_0$180	= .
+	.globl	C$main.c$191$3_0$180
+;main.c:191: if (whitePieces[i].isKing) {
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	c, a
@@ -956,19 +913,19 @@ _printWhite::
 	ld	a, (hl)
 	ldhl	sp,	#2
 	ld	(hl), a
-	C$main.c$191$2_0$184	= .
-	.globl	C$main.c$191$2_0$184
-;main.c:191: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
+	C$main.c$192$2_0$178	= .
+	.globl	C$main.c$192$2_0$178
+;main.c:192: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
 	ldhl	sp,	#4
 	ld	a, (hl-)
 	add	a, #0x10
-	C$main.c$190$3_0$186	= .
-	.globl	C$main.c$190$3_0$186
-;main.c:190: if (whitePieces[i].isKing) {
+	C$main.c$191$3_0$180	= .
+	.globl	C$main.c$191$3_0$180
+;main.c:191: if (whitePieces[i].isKing) {
 	ld	(hl-), a
 	bit	0, (hl)
 	jr	Z, 00102$
-;main.c:191: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
+;main.c:192: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
 ;c:/gbdk/include/gb/gb.h:1602: shadow_OAM[nb].tile=tile;
 	inc	hl
 	ld	a, (hl-)
@@ -1007,12 +964,12 @@ _printWhite::
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x14
-	C$main.c$191$3_0$186	= .
-	.globl	C$main.c$191$3_0$186
-;main.c:191: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
+	C$main.c$192$3_0$180	= .
+	.globl	C$main.c$192$3_0$180
+;main.c:192: set_sprite_tile(i + 16, 20); // Use the white king sprite tile
 	jr	00103$
 00102$:
-;main.c:193: set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
+;main.c:194: set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
 ;c:/gbdk/include/gb/gb.h:1602: shadow_OAM[nb].tile=tile;
 	ldhl	sp,	#3
 	ld	a, (hl-)
@@ -1051,11 +1008,11 @@ _printWhite::
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x05
-	C$main.c$193$3_0$186	= .
-	.globl	C$main.c$193$3_0$186
-;main.c:193: set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
+	C$main.c$194$3_0$180	= .
+	.globl	C$main.c$194$3_0$180
+;main.c:194: set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
 00103$:
-;main.c:195: move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
+;main.c:196: move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	c, a
@@ -1092,9 +1049,9 @@ _printWhite::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), c
-	C$main.c$189$2_0$185	= .
-	.globl	C$main.c$189$2_0$185
-;main.c:189: for (int i = 0; i < 12; i++){
+	C$main.c$190$2_0$179	= .
+	.globl	C$main.c$190$2_0$179
+;main.c:190: for (int i = 0; i < 12; i++){
 	ldhl	sp,	#4
 	inc	(hl)
 	jp	NZ,00109$
@@ -1102,27 +1059,27 @@ _printWhite::
 	inc	(hl)
 	jp	00109$
 00111$:
-	C$main.c$197$2_0$184	= .
-	.globl	C$main.c$197$2_0$184
-;main.c:197: }
+	C$main.c$198$2_0$178	= .
+	.globl	C$main.c$198$2_0$178
+;main.c:198: }
 	add	sp, #6
-	C$main.c$197$2_0$184	= .
-	.globl	C$main.c$197$2_0$184
+	C$main.c$198$2_0$178	= .
+	.globl	C$main.c$198$2_0$178
 	XG$printWhite$0$0	= .
 	.globl	XG$printWhite$0$0
 	ret
 	G$isMoveWithinBoard$0$0	= .
 	.globl	G$isMoveWithinBoard$0$0
-	C$main.c$198$2_0$199	= .
-	.globl	C$main.c$198$2_0$199
-;main.c:198: bool isMoveWithinBoard(UINT8 x, UINT8 y) {
+	C$main.c$199$2_0$193	= .
+	.globl	C$main.c$199$2_0$193
+;main.c:199: bool isMoveWithinBoard(UINT8 x, UINT8 y) {
 ;	---------------------------------
 ; Function isMoveWithinBoard
 ; ---------------------------------
 _isMoveWithinBoard::
-	C$main.c$199$1_0$199	= .
-	.globl	C$main.c$199$1_0$199
-;main.c:199: return (x >= 20 && x <=148 && y >= 20 && y <= 148);
+	C$main.c$200$1_0$193	= .
+	.globl	C$main.c$200$1_0$193
+;main.c:200: return (x >= 20 && x <=148 && y >= 20 && y <= 148);
 	ld	c, a
 	sub	a, #0x14
 	jr	C, 00103$
@@ -1140,19 +1097,19 @@ _isMoveWithinBoard::
 	ret
 00104$:
 	ld	a, #0x01
-	C$main.c$200$1_0$199	= .
-	.globl	C$main.c$200$1_0$199
-;main.c:200: }
-	C$main.c$200$1_0$199	= .
-	.globl	C$main.c$200$1_0$199
+	C$main.c$201$1_0$193	= .
+	.globl	C$main.c$201$1_0$193
+;main.c:201: }
+	C$main.c$201$1_0$193	= .
+	.globl	C$main.c$201$1_0$193
 	XG$isMoveWithinBoard$0$0	= .
 	.globl	XG$isMoveWithinBoard$0$0
 	ret
 	G$getCaptureIndex$0$0	= .
 	.globl	G$getCaptureIndex$0$0
-	C$main.c$201$1_0$201	= .
-	.globl	C$main.c$201$1_0$201
-;main.c:201: int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
+	C$main.c$202$1_0$195	= .
+	.globl	C$main.c$202$1_0$195
+;main.c:202: int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
 ;	---------------------------------
 ; Function getCaptureIndex
 ; ---------------------------------
@@ -1161,9 +1118,9 @@ _getCaptureIndex::
 	ldhl	sp,	#6
 	ld	(hl-), a
 	ld	(hl), e
-	C$main.c$203$3_0$202	= .
-	.globl	C$main.c$203$3_0$202
-;main.c:203: for (int i = 0; i < numOpponentPieces; i++) {
+	C$main.c$204$3_0$196	= .
+	.globl	C$main.c$204$3_0$196
+;main.c:204: for (int i = 0; i < numOpponentPieces; i++) {
 	xor	a, a
 	ldhl	sp,	#2
 	ld	(hl+), a
@@ -1191,9 +1148,9 @@ _getCaptureIndex::
 	scf
 00131$:
 	jr	NC, 00104$
-	C$main.c$204$3_0$203	= .
-	.globl	C$main.c$204$3_0$203
-;main.c:204: UINT8 pieceX = opponentPieces[i].x;
+	C$main.c$205$3_0$197	= .
+	.globl	C$main.c$205$3_0$197
+;main.c:205: UINT8 pieceX = opponentPieces[i].x;
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -1212,12 +1169,12 @@ _getCaptureIndex::
 	ld	d, h
 	ld	a, (de)
 	ldhl	sp,	#4
-	C$main.c$205$3_0$203	= .
-	.globl	C$main.c$205$3_0$203
-;main.c:205: UINT8 pieceY = opponentPieces[i].y;
-	C$main.c$206$3_0$203	= .
-	.globl	C$main.c$206$3_0$203
-;main.c:206: if (capturedX == pieceX && capturedY == pieceY) {
+	C$main.c$206$3_0$197	= .
+	.globl	C$main.c$206$3_0$197
+;main.c:206: UINT8 pieceY = opponentPieces[i].y;
+	C$main.c$207$3_0$197	= .
+	.globl	C$main.c$207$3_0$197
+;main.c:207: if (capturedX == pieceX && capturedY == pieceY) {
 	ld	(hl+), a
 	inc	hl
 	inc	de
@@ -1231,18 +1188,18 @@ _getCaptureIndex::
 	ld	a, (hl)
 	sub	a, e
 	jr	NZ, 00107$
-	C$main.c$208$4_0$204	= .
-	.globl	C$main.c$208$4_0$204
-;main.c:208: return i;
+	C$main.c$209$4_0$198	= .
+	.globl	C$main.c$209$4_0$198
+;main.c:209: return i;
 	ldhl	sp,	#2
 	ld	c, (hl)
 	inc	hl
 	ld	b, (hl)
 	jr	00108$
 00107$:
-	C$main.c$203$2_0$202	= .
-	.globl	C$main.c$203$2_0$202
-;main.c:203: for (int i = 0; i < numOpponentPieces; i++) {
+	C$main.c$204$2_0$196	= .
+	.globl	C$main.c$204$2_0$196
+;main.c:204: for (int i = 0; i < numOpponentPieces; i++) {
 	inc	bc
 	ldhl	sp,	#2
 	ld	a, c
@@ -1250,23 +1207,23 @@ _getCaptureIndex::
 	ld	(hl), b
 	jr	00106$
 00104$:
-	C$main.c$212$1_0$201	= .
-	.globl	C$main.c$212$1_0$201
-;main.c:212: return -1;
+	C$main.c$213$1_0$195	= .
+	.globl	C$main.c$213$1_0$195
+;main.c:213: return -1;
 	ld	bc, #0xffff
 00108$:
-	C$main.c$213$1_0$201	= .
-	.globl	C$main.c$213$1_0$201
-;main.c:213: }
+	C$main.c$214$1_0$195	= .
+	.globl	C$main.c$214$1_0$195
+;main.c:214: }
 	add	sp, #7
 	pop	hl
 	add	sp, #4
 	jp	(hl)
 	G$isValidMove$0$0	= .
 	.globl	G$isValidMove$0$0
-	C$main.c$215$1_0$206	= .
-	.globl	C$main.c$215$1_0$206
-;main.c:215: bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
+	C$main.c$216$1_0$200	= .
+	.globl	C$main.c$216$1_0$200
+;main.c:216: bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
 ;	---------------------------------
 ; Function isValidMove
 ; ---------------------------------
@@ -1275,49 +1232,49 @@ _isValidMove::
 	ldhl	sp,	#10
 	ld	(hl-), a
 	ld	(hl), e
-	C$main.c$221$1_0$206	= .
-	.globl	C$main.c$221$1_0$206
-;main.c:221: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$222$1_0$200	= .
+	.globl	C$main.c$222$1_0$200
+;main.c:222: if (currentPlayer == BLACK_PLAYER) {
 	ldhl	sp,	#13
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00102$
-	C$main.c$222$2_0$207	= .
-	.globl	C$main.c$222$2_0$207
-;main.c:222: pieces = blackPieces;
+	C$main.c$223$2_0$201	= .
+	.globl	C$main.c$223$2_0$201
+;main.c:223: pieces = blackPieces;
 	ld	bc, #_blackPieces+0
-	C$main.c$224$2_0$207	= .
-	.globl	C$main.c$224$2_0$207
-;main.c:224: numPieces = MAX_BLACK_PIECES;
+	C$main.c$225$2_0$201	= .
+	.globl	C$main.c$225$2_0$201
+;main.c:225: numPieces = MAX_BLACK_PIECES;
 	ldhl	sp,	#0
 	ld	a, #0x0c
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-	C$main.c$225$1_0$206	= .
-	.globl	C$main.c$225$1_0$206
-;main.c:225: numOpponentPieces = MAX_WHITE_PIECES;
+	C$main.c$226$1_0$200	= .
+	.globl	C$main.c$226$1_0$200
+;main.c:226: numOpponentPieces = MAX_WHITE_PIECES;
 	jr	00103$
 00102$:
-	C$main.c$227$2_0$208	= .
-	.globl	C$main.c$227$2_0$208
-;main.c:227: pieces = whitePieces;
+	C$main.c$228$2_0$202	= .
+	.globl	C$main.c$228$2_0$202
+;main.c:228: pieces = whitePieces;
 	ld	bc, #_whitePieces
-	C$main.c$229$2_0$208	= .
-	.globl	C$main.c$229$2_0$208
-;main.c:229: numPieces = MAX_WHITE_PIECES;
+	C$main.c$230$2_0$202	= .
+	.globl	C$main.c$230$2_0$202
+;main.c:230: numPieces = MAX_WHITE_PIECES;
 	ldhl	sp,	#0
 	ld	a, #0x0c
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-	C$main.c$230$1_0$206	= .
-	.globl	C$main.c$230$1_0$206
-;main.c:230: numOpponentPieces = MAX_BLACK_PIECES;
+	C$main.c$231$1_0$200	= .
+	.globl	C$main.c$231$1_0$200
+;main.c:231: numOpponentPieces = MAX_BLACK_PIECES;
 00103$:
-	C$main.c$233$1_1$209	= .
-	.globl	C$main.c$233$1_1$209
-;main.c:233: int dx = cursorx - pieces[selectedCoords].x;
+	C$main.c$234$1_1$203	= .
+	.globl	C$main.c$234$1_1$203
+;main.c:234: int dx = cursorx - pieces[selectedCoords].x;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ldhl	sp,	#3
@@ -1371,9 +1328,9 @@ _isValidMove::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), a
-	C$main.c$234$1_1$209	= .
-	.globl	C$main.c$234$1_1$209
-;main.c:234: int dy = cursory - pieces[selectedCoords].y;
+	C$main.c$235$1_1$203	= .
+	.globl	C$main.c$235$1_1$203
+;main.c:235: int dy = cursory - pieces[selectedCoords].y;
 	ldhl	sp,	#9
 	ld	a, (hl-)
 	dec	hl
@@ -1395,9 +1352,9 @@ _isValidMove::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-	C$main.c$236$1_1$209	= .
-	.globl	C$main.c$236$1_1$209
-;main.c:236: if (!(isMoveWithinBoard(cursorx, cursory))) {
+	C$main.c$237$1_1$203	= .
+	.globl	C$main.c$237$1_1$203
+;main.c:237: if (!(isMoveWithinBoard(cursorx, cursory))) {
 	ldhl	sp,	#9
 	ld	a, (hl+)
 	ld	e, a
@@ -1406,15 +1363,15 @@ _isValidMove::
 	ld	c, a
 	bit	0, c
 	jr	NZ, 00105$
-	C$main.c$237$2_1$210	= .
-	.globl	C$main.c$237$2_1$210
-;main.c:237: return false;
+	C$main.c$238$2_1$204	= .
+	.globl	C$main.c$238$2_1$204
+;main.c:238: return false;
 	xor	a, a
 	jp	00131$
 00105$:
-	C$main.c$240$1_1$209	= .
-	.globl	C$main.c$240$1_1$209
-;main.c:240: if (selectedCoords < 0 || selectedCoords >= numPieces) {
+	C$main.c$241$1_1$203	= .
+	.globl	C$main.c$241$1_1$203
+;main.c:241: if (selectedCoords < 0 || selectedCoords >= numPieces) {
 	ldhl	sp,	#15
 	bit	7, (hl)
 	jr	NZ, 00106$
@@ -1444,15 +1401,15 @@ _isValidMove::
 00209$:
 	jr	C, 00107$
 00106$:
-	C$main.c$241$2_1$211	= .
-	.globl	C$main.c$241$2_1$211
-;main.c:241: return false;
+	C$main.c$242$2_1$205	= .
+	.globl	C$main.c$242$2_1$205
+;main.c:242: return false;
 	xor	a, a
 	jp	00131$
 00107$:
-	C$main.c$244$1_1$209	= .
-	.globl	C$main.c$244$1_1$209
-;main.c:244: if (abs(dx) != abs(dy)) {
+	C$main.c$245$1_1$203	= .
+	.globl	C$main.c$245$1_1$203
+;main.c:245: if (abs(dx) != abs(dy)) {
 	ldhl	sp,	#2
 	ld	a, (hl+)
 	ld	e, a
@@ -1476,15 +1433,15 @@ _isValidMove::
 	sub	a, b
 	jr	Z, 00110$
 00210$:
-	C$main.c$245$2_1$212	= .
-	.globl	C$main.c$245$2_1$212
-;main.c:245: return false;
+	C$main.c$246$2_1$206	= .
+	.globl	C$main.c$246$2_1$206
+;main.c:246: return false;
 	xor	a, a
 	jp	00131$
 00110$:
-	C$main.c$248$1_1$206	= .
-	.globl	C$main.c$248$1_1$206
-;main.c:248: if ((currentPlayer == BLACK_PLAYER && dy < 0 && !pieces[selectedCoords].isKing) ||
+	C$main.c$249$1_1$200	= .
+	.globl	C$main.c$249$1_1$200
+;main.c:249: if ((currentPlayer == BLACK_PLAYER && dy < 0 && !pieces[selectedCoords].isKing) ||
 	ldhl	sp,	#7
 	ld	a, (hl+)
 	ld	c, a
@@ -1503,9 +1460,9 @@ _isValidMove::
 	bit	0, e
 	jr	Z, 00111$
 00117$:
-	C$main.c$249$1_1$209	= .
-	.globl	C$main.c$249$1_1$209
-;main.c:249: (currentPlayer == WHITE_PLAYER && dy > 0 && !pieces[selectedCoords].isKing)) {
+	C$main.c$250$1_1$203	= .
+	.globl	C$main.c$250$1_1$203
+;main.c:250: (currentPlayer == WHITE_PLAYER && dy > 0 && !pieces[selectedCoords].isKing)) {
 	ldhl	sp,	#13
 	ld	a, (hl)
 	dec	a
@@ -1536,14 +1493,14 @@ _isValidMove::
 	bit	0, c
 	jr	NZ, 00146$
 00111$:
-	C$main.c$250$2_1$213	= .
-	.globl	C$main.c$250$2_1$213
-;main.c:250: return false;
+	C$main.c$251$2_1$207	= .
+	.globl	C$main.c$251$2_1$207
+;main.c:251: return false;
 	xor	a, a
 	jp	00131$
-	C$main.c$253$1_1$206	= .
-	.globl	C$main.c$253$1_1$206
-;main.c:253: for (int i = 0; i < numPieces; i++) {
+	C$main.c$254$1_1$200	= .
+	.globl	C$main.c$254$1_1$200
+;main.c:254: for (int i = 0; i < numPieces; i++) {
 00146$:
 	ld	bc, #0x0000
 00129$:
@@ -1567,9 +1524,9 @@ _isValidMove::
 	scf
 00216$:
 	jr	NC, 00124$
-	C$main.c$254$1_1$206	= .
-	.globl	C$main.c$254$1_1$206
-;main.c:254: if (whitePieces[i].x == cursorx && whitePieces[i].y == cursory) {
+	C$main.c$255$1_1$200	= .
+	.globl	C$main.c$255$1_1$200
+;main.c:255: if (whitePieces[i].x == cursorx && whitePieces[i].y == cursory) {
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -1604,15 +1561,15 @@ _isValidMove::
 	ld	a, (hl)
 	sub	a, e
 	jr	NZ, 00119$
-	C$main.c$255$4_1$216	= .
-	.globl	C$main.c$255$4_1$216
-;main.c:255: return false;
+	C$main.c$256$4_1$210	= .
+	.globl	C$main.c$256$4_1$210
+;main.c:256: return false;
 	xor	a, a
 	jr	00131$
 00119$:
-	C$main.c$257$1_1$206	= .
-	.globl	C$main.c$257$1_1$206
-;main.c:257: if (blackPieces[i].x == cursorx && blackPieces[i].y == cursory) {
+	C$main.c$258$1_1$200	= .
+	.globl	C$main.c$258$1_1$200
+;main.c:258: if (blackPieces[i].x == cursorx && blackPieces[i].y == cursory) {
 	ld	de, #_blackPieces
 	ldhl	sp,	#6
 	ld	a,	(hl+)
@@ -1636,21 +1593,21 @@ _isValidMove::
 	ld	a, (hl)
 	sub	a, e
 	jr	NZ, 00130$
-	C$main.c$258$4_1$217	= .
-	.globl	C$main.c$258$4_1$217
-;main.c:258: return false;
+	C$main.c$259$4_1$211	= .
+	.globl	C$main.c$259$4_1$211
+;main.c:259: return false;
 	xor	a, a
 	jr	00131$
 00130$:
-	C$main.c$253$2_1$214	= .
-	.globl	C$main.c$253$2_1$214
-;main.c:253: for (int i = 0; i < numPieces; i++) {
+	C$main.c$254$2_1$208	= .
+	.globl	C$main.c$254$2_1$208
+;main.c:254: for (int i = 0; i < numPieces; i++) {
 	inc	bc
 	jr	00129$
 00124$:
-	C$main.c$261$1_1$209	= .
-	.globl	C$main.c$261$1_1$209
-;main.c:261: if (abs(dx) > 2 * SQUARE_SIZE || abs(dy) > 2 * SQUARE_SIZE) {
+	C$main.c$262$1_1$203	= .
+	.globl	C$main.c$262$1_1$203
+;main.c:262: if (abs(dx) > 2 * SQUARE_SIZE || abs(dy) > 2 * SQUARE_SIZE) {
 	ldhl	sp,	#2
 	ld	a, (hl+)
 	ld	e, a
@@ -1706,29 +1663,29 @@ _isValidMove::
 00228$:
 	jr	NC, 00126$
 00125$:
-	C$main.c$262$2_1$218	= .
-	.globl	C$main.c$262$2_1$218
-;main.c:262: return false;
+	C$main.c$263$2_1$212	= .
+	.globl	C$main.c$263$2_1$212
+;main.c:263: return false;
 	xor	a, a
 	jr	00131$
 00126$:
-	C$main.c$265$1_1$209	= .
-	.globl	C$main.c$265$1_1$209
-;main.c:265: return true;
+	C$main.c$266$1_1$203	= .
+	.globl	C$main.c$266$1_1$203
+;main.c:266: return true;
 	ld	a, #0x01
 00131$:
-	C$main.c$266$1_1$206	= .
-	.globl	C$main.c$266$1_1$206
-;main.c:266: }
+	C$main.c$267$1_1$200	= .
+	.globl	C$main.c$267$1_1$200
+;main.c:267: }
 	add	sp, #11
 	pop	hl
 	add	sp, #3
 	jp	(hl)
 	G$checkCollision$0$0	= .
 	.globl	G$checkCollision$0$0
-	C$main.c$268$1_1$220	= .
-	.globl	C$main.c$268$1_1$220
-;main.c:268: bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
+	C$main.c$269$1_1$214	= .
+	.globl	C$main.c$269$1_1$214
+;main.c:269: bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
 ;	---------------------------------
 ; Function checkCollision
 ; ---------------------------------
@@ -1737,22 +1694,22 @@ _checkCollision::
 	ldhl	sp,	#10
 	ld	(hl-), a
 	ld	(hl), e
-	C$main.c$272$1_0$220	= .
-	.globl	C$main.c$272$1_0$220
-;main.c:272: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$273$1_0$214	= .
+	.globl	C$main.c$273$1_0$214
+;main.c:273: if (currentPlayer == BLACK_PLAYER) {
 	ldhl	sp,	#14
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00102$
-	C$main.c$273$2_0$221	= .
-	.globl	C$main.c$273$2_0$221
-;main.c:273: pieces = blackPieces;
+	C$main.c$274$2_0$215	= .
+	.globl	C$main.c$274$2_0$215
+;main.c:274: pieces = blackPieces;
 	ldhl	sp,	#2
 	ld	a, #<(_blackPieces)
 	ld	(hl+), a
-	C$main.c$274$2_0$221	= .
-	.globl	C$main.c$274$2_0$221
-;main.c:274: numPieces = 12;
+	C$main.c$275$2_0$215	= .
+	.globl	C$main.c$275$2_0$215
+;main.c:275: numPieces = 12;
 	ld	a, #>(_blackPieces)
 	ld	(hl+), a
 	ld	a, #0x0c
@@ -1761,15 +1718,15 @@ _checkCollision::
 	ld	(hl), a
 	jr	00103$
 00102$:
-	C$main.c$276$2_0$222	= .
-	.globl	C$main.c$276$2_0$222
-;main.c:276: pieces = whitePieces;
+	C$main.c$277$2_0$216	= .
+	.globl	C$main.c$277$2_0$216
+;main.c:277: pieces = whitePieces;
 	ldhl	sp,	#2
 	ld	a, #<(_whitePieces)
 	ld	(hl+), a
-	C$main.c$277$2_0$222	= .
-	.globl	C$main.c$277$2_0$222
-;main.c:277: numPieces = 12;
+	C$main.c$278$2_0$216	= .
+	.globl	C$main.c$278$2_0$216
+;main.c:278: numPieces = 12;
 	ld	a, #>(_whitePieces)
 	ld	(hl+), a
 	ld	a, #0x0c
@@ -1777,9 +1734,9 @@ _checkCollision::
 	xor	a, a
 	ld	(hl), a
 00103$:
-	C$main.c$280$3_0$223	= .
-	.globl	C$main.c$280$3_0$223
-;main.c:280: for (int i = 0; i < numPieces; i++) {
+	C$main.c$281$3_0$217	= .
+	.globl	C$main.c$281$3_0$217
+;main.c:281: for (int i = 0; i < numPieces; i++) {
 	xor	a, a
 	ldhl	sp,	#6
 	ld	(hl+), a
@@ -1807,9 +1764,9 @@ _checkCollision::
 	scf
 00147$:
 	jr	NC, 00110$
-	C$main.c$281$3_0$224	= .
-	.globl	C$main.c$281$3_0$224
-;main.c:281: UINT8 pieceX = pieces[i].x;
+	C$main.c$282$3_0$218	= .
+	.globl	C$main.c$282$3_0$218
+;main.c:282: UINT8 pieceX = pieces[i].x;
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -1828,12 +1785,12 @@ _checkCollision::
 	ld	d, h
 	ld	a, (de)
 	ldhl	sp,	#8
-	C$main.c$282$3_0$224	= .
-	.globl	C$main.c$282$3_0$224
-;main.c:282: UINT8 pieceY = pieces[i].y;
-	C$main.c$284$3_0$224	= .
-	.globl	C$main.c$284$3_0$224
-;main.c:284: if (cursorx == (pieceX) &&
+	C$main.c$283$3_0$218	= .
+	.globl	C$main.c$283$3_0$218
+;main.c:283: UINT8 pieceY = pieces[i].y;
+	C$main.c$285$3_0$218	= .
+	.globl	C$main.c$285$3_0$218
+;main.c:285: if (cursorx == (pieceX) &&
 	ld	(hl+), a
 	inc	hl
 	inc	de
@@ -1843,32 +1800,32 @@ _checkCollision::
 	dec	hl
 	sub	a, (hl)
 	jr	NZ, 00113$
-	C$main.c$285$3_0$224	= .
-	.globl	C$main.c$285$3_0$224
-;main.c:285: cursory == (pieceY)) {
+	C$main.c$286$3_0$218	= .
+	.globl	C$main.c$286$3_0$218
+;main.c:286: cursory == (pieceY)) {
 	ldhl	sp,	#9
 	ld	a, (hl)
 	sub	a, e
 	jr	NZ, 00113$
-	C$main.c$286$4_0$225	= .
-	.globl	C$main.c$286$4_0$225
-;main.c:286: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$287$4_0$219	= .
+	.globl	C$main.c$287$4_0$219
+;main.c:287: if (currentPlayer == BLACK_PLAYER) {
 	ldhl	sp,	#14
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00105$
-	C$main.c$287$5_0$226	= .
-	.globl	C$main.c$287$5_0$226
-;main.c:287: selectedCoords = i;
+	C$main.c$288$5_0$220	= .
+	.globl	C$main.c$288$5_0$220
+;main.c:288: selectedCoords = i;
 	ldhl	sp,	#6
 	ld	a, (hl)
 	ld	(#_selectedCoords),a
 	ldhl	sp,	#7
 	ld	a, (hl)
 	ld	(#_selectedCoords + 1),a
-	C$main.c$288$5_0$226	= .
-	.globl	C$main.c$288$5_0$226
-;main.c:288: selectedPieceIndex = i + 4;
+	C$main.c$289$5_0$220	= .
+	.globl	C$main.c$289$5_0$220
+;main.c:289: selectedPieceIndex = i + 4;
 	ldhl	sp,#6
 	ld	a, (hl+)
 	ld	e, a
@@ -1883,18 +1840,18 @@ _checkCollision::
 	ld	(hl), d
 	jr	00106$
 00105$:
-	C$main.c$290$5_0$227	= .
-	.globl	C$main.c$290$5_0$227
-;main.c:290: selectedCoords = i;
+	C$main.c$291$5_0$221	= .
+	.globl	C$main.c$291$5_0$221
+;main.c:291: selectedCoords = i;
 	ldhl	sp,	#6
 	ld	a, (hl)
 	ld	(#_selectedCoords),a
 	ldhl	sp,	#7
 	ld	a, (hl)
 	ld	(#_selectedCoords + 1),a
-	C$main.c$291$5_0$227	= .
-	.globl	C$main.c$291$5_0$227
-;main.c:291: selectedPieceIndex = i + 16;
+	C$main.c$292$5_0$221	= .
+	.globl	C$main.c$292$5_0$221
+;main.c:292: selectedPieceIndex = i + 16;
 	ldhl	sp,#6
 	ld	a, (hl+)
 	ld	e, a
@@ -1908,15 +1865,15 @@ _checkCollision::
 	ld	(hl+), a
 	ld	(hl), d
 00106$:
-	C$main.c$293$4_0$225	= .
-	.globl	C$main.c$293$4_0$225
-;main.c:293: return true;
+	C$main.c$294$4_0$219	= .
+	.globl	C$main.c$294$4_0$219
+;main.c:294: return true;
 	ld	a, #0x01
 	jr	00114$
 00113$:
-	C$main.c$280$2_0$223	= .
-	.globl	C$main.c$280$2_0$223
-;main.c:280: for (int i = 0; i < numPieces; i++) {
+	C$main.c$281$2_0$217	= .
+	.globl	C$main.c$281$2_0$217
+;main.c:281: for (int i = 0; i < numPieces; i++) {
 	inc	bc
 	ldhl	sp,	#6
 	ld	a, c
@@ -1924,39 +1881,39 @@ _checkCollision::
 	ld	(hl), b
 	jp	00112$
 00110$:
-	C$main.c$297$1_0$220	= .
-	.globl	C$main.c$297$1_0$220
-;main.c:297: selectedPieceIndex = -1;
+	C$main.c$298$1_0$214	= .
+	.globl	C$main.c$298$1_0$214
+;main.c:298: selectedPieceIndex = -1;
 	ld	hl, #_selectedPieceIndex
 	ld	a, #0xff
 	ld	(hl+), a
 	ld	(hl), #0xff
-	C$main.c$298$1_0$220	= .
-	.globl	C$main.c$298$1_0$220
-;main.c:298: return false;
+	C$main.c$299$1_0$214	= .
+	.globl	C$main.c$299$1_0$214
+;main.c:299: return false;
 	xor	a, a
 00114$:
-	C$main.c$299$1_0$220	= .
-	.globl	C$main.c$299$1_0$220
-;main.c:299: }
+	C$main.c$300$1_0$214	= .
+	.globl	C$main.c$300$1_0$214
+;main.c:300: }
 	add	sp, #11
 	pop	hl
 	pop	bc
 	jp	(hl)
 	G$hasValidCaptureMoves$0$0	= .
 	.globl	G$hasValidCaptureMoves$0$0
-	C$main.c$300$1_0$229	= .
-	.globl	C$main.c$300$1_0$229
-;main.c:300: bool hasValidCaptureMoves(UINT8 currentPlayer) {
+	C$main.c$301$1_0$223	= .
+	.globl	C$main.c$301$1_0$223
+;main.c:301: bool hasValidCaptureMoves(UINT8 currentPlayer) {
 ;	---------------------------------
 ; Function hasValidCaptureMoves
 ; ---------------------------------
 _hasValidCaptureMoves::
 	add	sp, #-14
 	ldhl	sp,	#11
-	C$main.c$301$1_0$229	= .
-	.globl	C$main.c$301$1_0$229
-;main.c:301: Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+	C$main.c$302$1_0$223	= .
+	.globl	C$main.c$302$1_0$223
+;main.c:302: Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
 	ld	(hl), a
 	or	a, a
 	jr	NZ, 00116$
@@ -1969,9 +1926,9 @@ _hasValidCaptureMoves::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-	C$main.c$302$1_0$229	= .
-	.globl	C$main.c$302$1_0$229
-;main.c:302: Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
+	C$main.c$303$1_0$223	= .
+	.globl	C$main.c$303$1_0$223
+;main.c:303: Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	or	a, a
@@ -1985,8 +1942,8 @@ _hasValidCaptureMoves::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-	C$main.c$306$1_0$229	= .
-	.globl	C$main.c$306$1_0$229
+	C$main.c$306$1_0$223	= .
+	.globl	C$main.c$306$1_0$223
 ;main.c:306: for (int i = 0; i < numPieces; i++) {
 	xor	a, a
 	ldhl	sp,	#12
@@ -2013,8 +1970,8 @@ _hasValidCaptureMoves::
 	scf
 00209$:
 	jp	NC, 00110$
-	C$main.c$307$1_0$229	= .
-	.globl	C$main.c$307$1_0$229
+	C$main.c$307$1_0$223	= .
+	.globl	C$main.c$307$1_0$223
 ;main.c:307: if (isValidMove(pieces[i].x - 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x - 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
 	ldhl	sp,#12
 	ld	a, (hl+)
@@ -2167,8 +2124,8 @@ _hasValidCaptureMoves::
 	inc	a
 	jp	NZ,00101$
 00105$:
-	C$main.c$308$3_0$231	= .
-	.globl	C$main.c$308$3_0$231
+	C$main.c$308$3_0$225	= .
+	.globl	C$main.c$308$3_0$225
 ;main.c:308: isValidMove(pieces[i].x + 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x + 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
 	ldhl	sp,#6
 	ld	a, (hl+)
@@ -2277,8 +2234,8 @@ _hasValidCaptureMoves::
 	inc	a
 	jp	NZ,00101$
 00107$:
-	C$main.c$309$3_0$231	= .
-	.globl	C$main.c$309$3_0$231
+	C$main.c$309$3_0$225	= .
+	.globl	C$main.c$309$3_0$225
 ;main.c:309: isValidMove(pieces[i].x - 2 * SQUARE_SIZE, pieces[i].y - 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x - 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y - 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
 	ldhl	sp,#6
 	ld	a, (hl+)
@@ -2394,8 +2351,8 @@ _hasValidCaptureMoves::
 	inc	a
 	jp	NZ,00101$
 00109$:
-	C$main.c$310$3_0$231	= .
-	.globl	C$main.c$310$3_0$231
+	C$main.c$310$3_0$225	= .
+	.globl	C$main.c$310$3_0$225
 ;main.c:310: isValidMove(pieces[i].x + 2 * SQUARE_SIZE, pieces[i].y - 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x + 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y - 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1)) {
 	ldhl	sp,#6
 	ld	a, (hl+)
@@ -2545,14 +2502,14 @@ _hasValidCaptureMoves::
 	inc	a
 	jr	Z, 00113$
 00101$:
-	C$main.c$311$4_0$232	= .
-	.globl	C$main.c$311$4_0$232
+	C$main.c$311$4_0$226	= .
+	.globl	C$main.c$311$4_0$226
 ;main.c:311: return true; // Found at least one valid capture move
 	ld	a, #0x01
 	jr	00114$
 00113$:
-	C$main.c$306$2_0$230	= .
-	.globl	C$main.c$306$2_0$230
+	C$main.c$306$2_0$224	= .
+	.globl	C$main.c$306$2_0$224
 ;main.c:306: for (int i = 0; i < numPieces; i++) {
 	ldhl	sp,	#12
 	inc	(hl)
@@ -2561,95 +2518,79 @@ _hasValidCaptureMoves::
 	inc	(hl)
 	jp	00112$
 00110$:
-	C$main.c$314$1_0$229	= .
-	.globl	C$main.c$314$1_0$229
+	C$main.c$314$1_0$223	= .
+	.globl	C$main.c$314$1_0$223
 ;main.c:314: return false; // No valid capture moves found for any piece
 	xor	a, a
 00114$:
-	C$main.c$315$1_0$229	= .
-	.globl	C$main.c$315$1_0$229
+	C$main.c$315$1_0$223	= .
+	.globl	C$main.c$315$1_0$223
 ;main.c:315: }
 	add	sp, #14
-	C$main.c$315$1_0$229	= .
-	.globl	C$main.c$315$1_0$229
+	C$main.c$315$1_0$223	= .
+	.globl	C$main.c$315$1_0$223
 	XG$hasValidCaptureMoves$0$0	= .
 	.globl	XG$hasValidCaptureMoves$0$0
 	ret
 	G$hasValidNonCaptureMoves$0$0	= .
 	.globl	G$hasValidNonCaptureMoves$0$0
-	C$main.c$316$1_0$234	= .
-	.globl	C$main.c$316$1_0$234
-;main.c:316: bool hasValidNonCaptureMoves(Piece* pieces, int numPieces, UINT8 currentPlayer) {
+	C$main.c$316$1_0$228	= .
+	.globl	C$main.c$316$1_0$228
+;main.c:316: bool hasValidNonCaptureMoves(UINT8 currentPlayer) {
 ;	---------------------------------
 ; Function hasValidNonCaptureMoves
 ; ---------------------------------
 _hasValidNonCaptureMoves::
-	add	sp, #-9
+	add	sp, #-8
 	ldhl	sp,	#7
-	ld	a, e
-	ld	(hl+), a
-	ld	(hl), d
-	ldhl	sp,	#5
-	ld	a, c
-	ld	(hl+), a
-	ld	(hl), b
-	C$main.c$317$1_0$234	= .
-	.globl	C$main.c$317$1_0$234
-;main.c:317: for (int i = 0; i < numPieces; i++) {
+	C$main.c$317$1_0$228	= .
+	.globl	C$main.c$317$1_0$228
+;main.c:317: Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+	ld	(hl), a
+	or	a, a
+	jr	NZ, 00112$
+	ld	bc, #_blackPieces+0
+	jr	00113$
+00112$:
+	ld	bc, #_whitePieces+0
+00113$:
+	inc	sp
+	inc	sp
+	push	bc
+	C$main.c$319$1_0$228	= .
+	.globl	C$main.c$319$1_0$228
+;main.c:319: for (int i = 0; i < numPieces; i++) {
 	ld	bc, #0x0000
 00108$:
-	ldhl	sp,	#5
 	ld	a, c
-	sub	a, (hl)
-	inc	hl
+	sub	a, #0x0c
 	ld	a, b
-	sbc	a, (hl)
-	ld	a, b
-	ld	d, a
-	ld	e, (hl)
-	bit	7, e
-	jr	Z, 00137$
-	bit	7, d
-	jr	NZ, 00138$
-	cp	a, a
-	jr	00138$
-00137$:
-	bit	7, d
-	jr	Z, 00138$
-	scf
-00138$:
+	rla
+	ccf
+	rra
+	sbc	a, #0x80
 	jp	NC, 00106$
-	C$main.c$318$3_0$236	= .
-	.globl	C$main.c$318$3_0$236
-;main.c:318: if (isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
+	C$main.c$320$3_0$230	= .
+	.globl	C$main.c$320$3_0$230
+;main.c:320: if (isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
 	ld	l, c
 	ld	h, b
 	add	hl, hl
 	add	hl, bc
 	push	hl
 	ld	a, l
-	ldhl	sp,	#5
+	ldhl	sp,	#7
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#4
+	ldhl	sp,	#6
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-	ldhl	sp,	#7
-	ld	a,	(hl+)
-	ld	h, (hl)
-	ld	l, a
+	pop	hl
+	push	hl
 	add	hl, de
-	inc	sp
-	inc	sp
-	ld	e, l
-	ld	d, h
-	push	de
-	ld	l, e
-	ld	h, d
-	inc	hl
 	push	hl
 	ld	a, l
 	ldhl	sp,	#4
@@ -2660,23 +2601,38 @@ _hasValidNonCaptureMoves::
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	inc	hl
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
 	ld	a, (hl+)
 	ld	d, a
 	ld	a, (de)
 	add	a, #0xf0
 	ld	(hl), a
-	pop	de
-	push	de
+	ldhl	sp,#2
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
 	ld	a, (de)
 	add	a, #0xf0
 	ld	d, a
 	push	bc
 	push	bc
-	ldhl	sp,	#15
-	ld	a, (hl)
+	ldhl	sp,	#11
+	ld	a, (hl-)
 	push	af
 	inc	sp
-	ldhl	sp,	#9
 	ld	e, (hl)
 	ld	a, d
 	call	_isValidMove
@@ -2684,10 +2640,10 @@ _hasValidNonCaptureMoves::
 	pop	bc
 	bit	0, e
 	jr	NZ, 00101$
-	C$main.c$319$3_0$236	= .
-	.globl	C$main.c$319$3_0$236
-;main.c:319: isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
-	ldhl	sp,#2
+	C$main.c$321$3_0$230	= .
+	.globl	C$main.c$321$3_0$230
+;main.c:321: isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
+	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
 	ld	a, (hl+)
@@ -2695,18 +2651,19 @@ _hasValidNonCaptureMoves::
 	ld	a, (de)
 	add	a, #0xf0
 	ld	(hl), a
-	pop	de
-	push	de
+	ldhl	sp,#2
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
 	ld	a, (de)
 	add	a, #0x10
 	ld	d, a
 	push	bc
 	push	bc
-	ldhl	sp,	#15
-	ld	a, (hl)
+	ldhl	sp,	#11
+	ld	a, (hl-)
 	push	af
 	inc	sp
-	ldhl	sp,	#9
 	ld	e, (hl)
 	ld	a, d
 	call	_isValidMove
@@ -2714,10 +2671,10 @@ _hasValidNonCaptureMoves::
 	pop	bc
 	bit	0, e
 	jr	NZ, 00101$
-	C$main.c$320$3_0$236	= .
-	.globl	C$main.c$320$3_0$236
-;main.c:320: isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i) ||
-	ldhl	sp,#2
+	C$main.c$322$3_0$230	= .
+	.globl	C$main.c$322$3_0$230
+;main.c:322: isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i) ||
+	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
 	ld	a, (hl+)
@@ -2725,18 +2682,19 @@ _hasValidNonCaptureMoves::
 	ld	a, (de)
 	add	a, #0x10
 	ld	(hl), a
-	pop	de
-	push	de
+	ldhl	sp,#2
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
 	ld	a, (de)
 	add	a, #0xf0
 	ld	d, a
 	push	bc
 	push	bc
-	ldhl	sp,	#15
-	ld	a, (hl)
+	ldhl	sp,	#11
+	ld	a, (hl-)
 	push	af
 	inc	sp
-	ldhl	sp,	#9
 	ld	e, (hl)
 	ld	a, d
 	call	_isValidMove
@@ -2744,10 +2702,10 @@ _hasValidNonCaptureMoves::
 	pop	bc
 	bit	0, e
 	jr	NZ, 00101$
-	C$main.c$321$3_0$236	= .
-	.globl	C$main.c$321$3_0$236
-;main.c:321: isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i)) {
-	ldhl	sp,#2
+	C$main.c$323$3_0$230	= .
+	.globl	C$main.c$323$3_0$230
+;main.c:323: isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i)) {
+	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
 	ld	a, (hl+)
@@ -2755,18 +2713,19 @@ _hasValidNonCaptureMoves::
 	ld	a, (de)
 	add	a, #0x10
 	ld	(hl), a
-	pop	de
-	push	de
+	ldhl	sp,#2
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
 	ld	a, (de)
 	add	a, #0x10
 	ld	d, a
 	push	bc
 	push	bc
-	ldhl	sp,	#15
-	ld	a, (hl)
+	ldhl	sp,	#11
+	ld	a, (hl-)
 	push	af
 	inc	sp
-	ldhl	sp,	#9
 	ld	e, (hl)
 	ld	a, d
 	call	_isValidMove
@@ -2775,125 +2734,294 @@ _hasValidNonCaptureMoves::
 	bit	0, e
 	jr	Z, 00109$
 00101$:
-	C$main.c$322$4_0$237	= .
-	.globl	C$main.c$322$4_0$237
-;main.c:322: return true; // Found at least one valid move
+	C$main.c$324$4_0$231	= .
+	.globl	C$main.c$324$4_0$231
+;main.c:324: return true; // Found at least one valid move
 	ld	a, #0x01
 	jr	00110$
 00109$:
-	C$main.c$317$2_0$235	= .
-	.globl	C$main.c$317$2_0$235
-;main.c:317: for (int i = 0; i < numPieces; i++) {
+	C$main.c$319$2_0$229	= .
+	.globl	C$main.c$319$2_0$229
+;main.c:319: for (int i = 0; i < numPieces; i++) {
 	inc	bc
 	jp	00108$
 00106$:
-	C$main.c$325$1_0$234	= .
-	.globl	C$main.c$325$1_0$234
-;main.c:325: return false; // No valid moves found for any piece
+	C$main.c$327$1_0$228	= .
+	.globl	C$main.c$327$1_0$228
+;main.c:327: return false; // No valid moves found for any piece
 	xor	a, a
 00110$:
-	C$main.c$326$1_0$234	= .
-	.globl	C$main.c$326$1_0$234
-;main.c:326: }
-	add	sp, #9
-	pop	hl
-	inc	sp
-	jp	(hl)
+	C$main.c$328$1_0$228	= .
+	.globl	C$main.c$328$1_0$228
+;main.c:328: }
+	add	sp, #8
+	C$main.c$328$1_0$228	= .
+	.globl	C$main.c$328$1_0$228
+	XG$hasValidNonCaptureMoves$0$0	= .
+	.globl	XG$hasValidNonCaptureMoves$0$0
+	ret
+	G$hasValidMoves$0$0	= .
+	.globl	G$hasValidMoves$0$0
+	C$main.c$329$1_0$233	= .
+	.globl	C$main.c$329$1_0$233
+;main.c:329: bool hasValidMoves(UINT8 currentPlayer) {
+;	---------------------------------
+; Function hasValidMoves
+; ---------------------------------
+_hasValidMoves::
+	ld	b, a
+	C$main.c$330$1_0$233	= .
+	.globl	C$main.c$330$1_0$233
+;main.c:330: bool hasValidNonCapture = hasValidNonCaptureMoves(currentPlayer);
+	push	bc
+	ld	a, b
+	call	_hasValidNonCaptureMoves
+	pop	bc
+	ld	c, a
+	C$main.c$331$1_0$233	= .
+	.globl	C$main.c$331$1_0$233
+;main.c:331: bool hasValidCapture = hasValidCaptureMoves(currentPlayer);
+	push	bc
+	ld	a, b
+	call	_hasValidCaptureMoves
+	pop	bc
+	ld	b, a
+	C$main.c$332$1_0$233	= .
+	.globl	C$main.c$332$1_0$233
+;main.c:332: if (hasValidNonCapture || hasValidCapture) {
+	bit	0, c
+	jr	NZ, 00101$
+	bit	0, b
+	jr	Z, 00102$
+00101$:
+	C$main.c$333$2_0$234	= .
+	.globl	C$main.c$333$2_0$234
+;main.c:333: return true; // No valid moves
+	ld	a, #0x01
+	ret
+00102$:
+	C$main.c$335$1_0$233	= .
+	.globl	C$main.c$335$1_0$233
+;main.c:335: return false; // Has valid moves
+	xor	a, a
+	C$main.c$336$1_0$233	= .
+	.globl	C$main.c$336$1_0$233
+;main.c:336: }
+	C$main.c$336$1_0$233	= .
+	.globl	C$main.c$336$1_0$233
+	XG$hasValidMoves$0$0	= .
+	.globl	XG$hasValidMoves$0$0
+	ret
+	G$printTurn$0$0	= .
+	.globl	G$printTurn$0$0
+	C$main.c$337$1_0$235	= .
+	.globl	C$main.c$337$1_0$235
+;main.c:337: void printTurn() {
+;	---------------------------------
+; Function printTurn
+; ---------------------------------
+_printTurn::
+	C$main.c$338$1_0$235	= .
+	.globl	C$main.c$338$1_0$235
+;main.c:338: if (hasValidMoves(currentPlayer)){
+	ld	a, (#_currentPlayer)
+	call	_hasValidMoves
+	bit	0,a
+	jr	Z, 00108$
+	C$main.c$339$2_0$236	= .
+	.globl	C$main.c$339$2_0$236
+;main.c:339: if (currentPlayer == BLACK_PLAYER){
+	ld	a, (#_currentPlayer)
+	or	a, a
+	jr	NZ, 00102$
+	C$main.c$340$3_0$237	= .
+	.globl	C$main.c$340$3_0$237
+;main.c:340: set_win_tiles(2, 0, 16, 1, currentPlayerBlackText);
+	ld	de, #_currentPlayerBlackText
+	push	de
+	ld	hl, #0x110
+	push	hl
+	ld	hl, #0x02
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+	jr	00103$
+00102$:
+	C$main.c$342$3_0$238	= .
+	.globl	C$main.c$342$3_0$238
+;main.c:342: set_win_tiles(2, 0, 16, 1, currentPlayerWhiteText);
+	ld	de, #_currentPlayerWhiteText
+	push	de
+	ld	hl, #0x110
+	push	hl
+	ld	hl, #0x02
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+00103$:
+;c:/gbdk/include/gb/gb.h:1468: WX_REG=x, WY_REG=y;
+	ld	a, #0x07
+	ldh	(_WX_REG + 0), a
+	ld	a, #0x88
+	ldh	(_WY_REG + 0), a
+	C$main.c$344$1_0$235	= .
+	.globl	C$main.c$344$1_0$235
+;main.c:344: move_win(7, 136);
+	ret
+00108$:
+	C$main.c$346$2_0$239	= .
+	.globl	C$main.c$346$2_0$239
+;main.c:346: set_win_tiles(2, 0, 16, 1, clearText);
+	ld	de, #_clearText
+	push	de
+	ld	hl, #0x110
+	push	hl
+	ld	hl, #0x02
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+	C$main.c$347$2_0$239	= .
+	.globl	C$main.c$347$2_0$239
+;main.c:347: if (currentPlayer == BLACK_PLAYER){
+	ld	a, (#_currentPlayer)
+	or	a, a
+	jr	NZ, 00105$
+	C$main.c$348$3_0$240	= .
+	.globl	C$main.c$348$3_0$240
+;main.c:348: set_win_tiles(2, 8, 16, 1, whiteWins);
+	ld	de, #_whiteWins
+	push	de
+	ld	hl, #0x110
+	push	hl
+	ld	hl, #0x802
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+	jr	00106$
+00105$:
+	C$main.c$350$3_0$241	= .
+	.globl	C$main.c$350$3_0$241
+;main.c:350: set_win_tiles(2, 8, 16, 1, blackWins);
+	ld	de, #_blackWins
+	push	de
+	ld	hl, #0x110
+	push	hl
+	ld	hl, #0x802
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+00106$:
+;c:/gbdk/include/gb/gb.h:1468: WX_REG=x, WY_REG=y;
+	ld	a, #0x07
+	ldh	(_WX_REG + 0), a
+	ld	a, #0x07
+	ldh	(_WY_REG + 0), a
+	C$main.c$352$1_0$235	= .
+	.globl	C$main.c$352$1_0$235
+;main.c:352: move_win(7, 7);
+	C$main.c$354$1_0$235	= .
+	.globl	C$main.c$354$1_0$235
+;main.c:354: }
+	C$main.c$354$1_0$235	= .
+	.globl	C$main.c$354$1_0$235
+	XG$printTurn$0$0	= .
+	.globl	XG$printTurn$0$0
+	ret
 	G$main$0$0	= .
 	.globl	G$main$0$0
-	C$main.c$327$1_0$238	= .
-	.globl	C$main.c$327$1_0$238
-;main.c:327: void main() {
+	C$main.c$355$1_0$248	= .
+	.globl	C$main.c$355$1_0$248
+;main.c:355: void main() {
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
 _main::
 	add	sp, #-16
-	C$main.c$328$1_0$238	= .
-	.globl	C$main.c$328$1_0$238
-;main.c:328: font();
+	C$main.c$356$1_0$248	= .
+	.globl	C$main.c$356$1_0$248
+;main.c:356: font();
 	call	_font
-	C$main.c$329$1_0$238	= .
-	.globl	C$main.c$329$1_0$238
-;main.c:329: printTurn();
+	C$main.c$357$1_0$248	= .
+	.globl	C$main.c$357$1_0$248
+;main.c:357: printTurn();
 	call	_printTurn
-	C$main.c$330$1_0$238	= .
-	.globl	C$main.c$330$1_0$238
-;main.c:330: printbkg();
+	C$main.c$358$1_0$248	= .
+	.globl	C$main.c$358$1_0$248
+;main.c:358: printbkg();
 	call	_printbkg
-	C$main.c$331$1_0$238	= .
-	.globl	C$main.c$331$1_0$238
-;main.c:331: printSquare();
+	C$main.c$359$1_0$248	= .
+	.globl	C$main.c$359$1_0$248
+;main.c:359: printSquare();
 	call	_printSquare
-	C$main.c$332$1_0$238	= .
-	.globl	C$main.c$332$1_0$238
-;main.c:332: printBlack();
+	C$main.c$360$1_0$248	= .
+	.globl	C$main.c$360$1_0$248
+;main.c:360: printBlack();
 	call	_printBlack
-	C$main.c$333$1_0$238	= .
-	.globl	C$main.c$333$1_0$238
-;main.c:333: printWhite();
+	C$main.c$361$1_0$248	= .
+	.globl	C$main.c$361$1_0$248
+;main.c:361: printWhite();
 	call	_printWhite
-	C$main.c$334$1_0$238	= .
-	.globl	C$main.c$334$1_0$238
-;main.c:334: SHOW_BKG;  
+	C$main.c$362$1_0$248	= .
+	.globl	C$main.c$362$1_0$248
+;main.c:362: SHOW_BKG;  
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-	C$main.c$335$1_0$238	= .
-	.globl	C$main.c$335$1_0$238
-;main.c:335: SHOW_SPRITES;
+	C$main.c$363$1_0$248	= .
+	.globl	C$main.c$363$1_0$248
+;main.c:363: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-	C$main.c$336$1_0$238	= .
-	.globl	C$main.c$336$1_0$238
-;main.c:336: SHOW_WIN;
+	C$main.c$364$1_0$248	= .
+	.globl	C$main.c$364$1_0$248
+;main.c:364: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-	C$main.c$337$1_0$238	= .
-	.globl	C$main.c$337$1_0$238
-;main.c:337: while(1) {
+	C$main.c$365$1_0$248	= .
+	.globl	C$main.c$365$1_0$248
+;main.c:365: while(1) {
 00153$:
-	C$main.c$338$2_0$239	= .
-	.globl	C$main.c$338$2_0$239
-;main.c:338: joypad_input = joypad();
+	C$main.c$366$2_0$249	= .
+	.globl	C$main.c$366$2_0$249
+;main.c:366: joypad_input = joypad();
 	call	_joypad
 	ld	hl, #_joypad_input
 	ld	(hl), a
-	C$main.c$340$2_0$239	= .
-	.globl	C$main.c$340$2_0$239
-;main.c:340: if (joypad_input != lastButtonState) {
+	C$main.c$368$2_0$249	= .
+	.globl	C$main.c$368$2_0$249
+;main.c:368: if (joypad_input != lastButtonState) {
 	ld	a, (hl)
 	ld	hl, #_lastButtonState
 	sub	a, (hl)
 	jr	Z, 00104$
-	C$main.c$341$3_0$240	= .
-	.globl	C$main.c$341$3_0$240
-;main.c:341: debounceTimer = 0; // Reset the debounce timer
+	C$main.c$369$3_0$250	= .
+	.globl	C$main.c$369$3_0$250
+;main.c:369: debounceTimer = 0; // Reset the debounce timer
 	xor	a, a
 	ld	hl, #_debounceTimer
 	ld	(hl+), a
 	ld	(hl), a
-	C$main.c$342$3_0$240	= .
-	.globl	C$main.c$342$3_0$240
-;main.c:342: lastButtonState = joypad_input;
+	C$main.c$370$3_0$250	= .
+	.globl	C$main.c$370$3_0$250
+;main.c:370: lastButtonState = joypad_input;
 	ld	a, (#_joypad_input)
 	ld	(#_lastButtonState),a
 	jr	00105$
 00104$:
-	C$main.c$343$2_0$239	= .
-	.globl	C$main.c$343$2_0$239
-;main.c:343: } else if (debounceTimer < DEBOUNCE_DELAY) {
+	C$main.c$371$2_0$249	= .
+	.globl	C$main.c$371$2_0$249
+;main.c:371: } else if (debounceTimer < DEBOUNCE_DELAY) {
 	ld	hl, #_debounceTimer
 	ld	a, (hl+)
 	sub	a, #0x06
 	ld	a, (hl)
 	sbc	a, #0x00
 	jr	NC, 00105$
-	C$main.c$344$3_0$241	= .
-	.globl	C$main.c$344$3_0$241
-;main.c:344: debounceTimer += 100; // Increment the debounce timer based on the loop delay (100ms in this code)
+	C$main.c$372$3_0$251	= .
+	.globl	C$main.c$372$3_0$251
+;main.c:372: debounceTimer += 100; // Increment the debounce timer based on the loop delay (100ms in this code)
 	dec	hl
 	ld	a, (hl)
 	add	a, #0x64
@@ -2901,30 +3029,30 @@ _main::
 	ld	a, (hl)
 	adc	a, #0x00
 	ld	(hl), a
-	C$main.c$345$3_0$241	= .
-	.globl	C$main.c$345$3_0$241
-;main.c:345: continue; // Skip processing input until the debounce delay is reached
+	C$main.c$373$3_0$251	= .
+	.globl	C$main.c$373$3_0$251
+;main.c:373: continue; // Skip processing input until the debounce delay is reached
 	jr	00153$
 00105$:
-	C$main.c$347$2_0$239	= .
-	.globl	C$main.c$347$2_0$239
-;main.c:347: dpad();
+	C$main.c$375$2_0$249	= .
+	.globl	C$main.c$375$2_0$249
+;main.c:375: dpad();
 	call	_dpad
-	C$main.c$348$2_0$239	= .
-	.globl	C$main.c$348$2_0$239
-;main.c:348: if (joypad_input & J_A) {
+	C$main.c$376$2_0$249	= .
+	.globl	C$main.c$376$2_0$249
+;main.c:376: if (joypad_input & J_A) {
 	ld	a, (#_joypad_input)
 	bit	4, a
 	jp	Z,00189$
-	C$main.c$349$3_0$242	= .
-	.globl	C$main.c$349$3_0$242
-;main.c:349: if (pieceSelected == false) {
+	C$main.c$377$3_0$252	= .
+	.globl	C$main.c$377$3_0$252
+;main.c:377: if (pieceSelected == false) {
 	ld	hl, #_pieceSelected
 	bit	0, (hl)
 	jp	NZ, 00189$
-	C$main.c$350$4_0$243	= .
-	.globl	C$main.c$350$4_0$243
-;main.c:350: checkCollision(cursorx - 4, cursory - 4, currentPlayer);
+	C$main.c$378$4_0$253	= .
+	.globl	C$main.c$378$4_0$253
+;main.c:378: checkCollision(cursorx - 4, cursory - 4, currentPlayer);
 	ld	hl, #_currentPlayer
 	ld	c, (hl)
 	ld	b, #0x00
@@ -2937,9 +3065,9 @@ _main::
 	push	bc
 	ld	a, d
 	call	_checkCollision
-	C$main.c$352$1_0$238	= .
-	.globl	C$main.c$352$1_0$238
-;main.c:352: if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
+	C$main.c$380$1_0$248	= .
+	.globl	C$main.c$380$1_0$248
+;main.c:380: if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
 	ld	hl, #_selectedPieceIndex
 	ld	a, (hl+)
 	sub	a, #0x10
@@ -2961,15 +3089,15 @@ _main::
 	ld	a, #0x00
 	rla
 	ld	c, a
-	C$main.c$351$4_0$243	= .
-	.globl	C$main.c$351$4_0$243
-;main.c:351: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$379$4_0$253	= .
+	.globl	C$main.c$379$4_0$253
+;main.c:379: if (currentPlayer == BLACK_PLAYER) {
 	ld	a, (#_currentPlayer)
 	or	a, a
 	jr	NZ, 00113$
-	C$main.c$352$5_0$244	= .
-	.globl	C$main.c$352$5_0$244
-;main.c:352: if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
+	C$main.c$380$5_0$254	= .
+	.globl	C$main.c$380$5_0$254
+;main.c:380: if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
 	ld	hl, #_selectedPieceIndex
 	ld	a, (hl+)
 	sub	a, #0x04
@@ -2992,16 +3120,16 @@ _main::
 	ld	a, c
 	or	a, a
 	jr	Z, 00189$
-	C$main.c$353$6_0$245	= .
-	.globl	C$main.c$353$6_0$245
-;main.c:353: pieceSelected = true;
+	C$main.c$381$6_0$255	= .
+	.globl	C$main.c$381$6_0$255
+;main.c:381: pieceSelected = true;
 	ld	hl, #_pieceSelected
 	ld	(hl), #0x01
 	jr	00189$
 00113$:
-	C$main.c$355$4_0$243	= .
-	.globl	C$main.c$355$4_0$243
-;main.c:355: } else if (selectedPieceIndex >= 16 && selectedPieceIndex < 28) {
+	C$main.c$383$4_0$253	= .
+	.globl	C$main.c$383$4_0$253
+;main.c:383: } else if (selectedPieceIndex >= 16 && selectedPieceIndex < 28) {
 	bit	0, c
 	jr	NZ, 00189$
 	ld	hl, #_selectedPieceIndex
@@ -3023,34 +3151,34 @@ _main::
 	scf
 00306$:
 	jr	NC, 00189$
-	C$main.c$356$5_0$246	= .
-	.globl	C$main.c$356$5_0$246
-;main.c:356: pieceSelected = true;
+	C$main.c$384$5_0$256	= .
+	.globl	C$main.c$384$5_0$256
+;main.c:384: pieceSelected = true;
 	ld	hl, #_pieceSelected
 	ld	(hl), #0x01
-	C$main.c$360$1_0$238	= .
-	.globl	C$main.c$360$1_0$238
-;main.c:360: while (pieceSelected == true) {
+	C$main.c$388$1_0$248	= .
+	.globl	C$main.c$388$1_0$248
+;main.c:388: while (pieceSelected == true) {
 00189$:
 00149$:
 	ld	hl, #_pieceSelected
 	bit	0, (hl)
 	jp	Z, 00151$
-	C$main.c$361$3_0$247	= .
-	.globl	C$main.c$361$3_0$247
-;main.c:361: delay(100);
+	C$main.c$389$3_0$257	= .
+	.globl	C$main.c$389$3_0$257
+;main.c:389: delay(100);
 	ld	de, #0x0064
 	call	_delay
-	C$main.c$362$3_0$247	= .
-	.globl	C$main.c$362$3_0$247
-;main.c:362: joypad_input = joypad(); // Update the input inside the loop
+	C$main.c$390$3_0$257	= .
+	.globl	C$main.c$390$3_0$257
+;main.c:390: joypad_input = joypad(); // Update the input inside the loop
 	call	_joypad
 	ld	(#_joypad_input),a
-	C$main.c$363$3_0$247	= .
-	.globl	C$main.c$363$3_0$247
-;main.c:363: dpad();
+	C$main.c$391$3_0$257	= .
+	.globl	C$main.c$391$3_0$257
+;main.c:391: dpad();
 	call	_dpad
-;main.c:364: move_sprite(selectedPieceIndex, cursorx - 4, cursory - 4);
+;main.c:392: move_sprite(selectedPieceIndex, cursorx - 4, cursory - 4);
 	ld	a, (#_cursory)
 	add	a, #0xfc
 	ldhl	sp,	#12
@@ -3115,15 +3243,15 @@ _main::
 	inc	bc
 	ld	a, (hl)
 	ld	(bc), a
-	C$main.c$365$3_0$247	= .
-	.globl	C$main.c$365$3_0$247
-;main.c:365: if (joypad_input & J_A) {
+	C$main.c$393$3_0$257	= .
+	.globl	C$main.c$393$3_0$257
+;main.c:393: if (joypad_input & J_A) {
 	ld	a, (#_joypad_input)
 	bit	4, a
 	jp	Z,00146$
-	C$main.c$366$4_0$248	= .
-	.globl	C$main.c$366$4_0$248
-;main.c:366: Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+	C$main.c$394$4_0$258	= .
+	.globl	C$main.c$394$4_0$258
+;main.c:394: Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
 	ld	a, (#_currentPlayer)
 	or	a, a
 	jr	NZ, 00158$
@@ -3146,9 +3274,9 @@ _main::
 	ld	a, (hl)
 	ldhl	sp,	#1
 	ld	(hl), a
-	C$main.c$367$4_0$248	= .
-	.globl	C$main.c$367$4_0$248
-;main.c:367: Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
+	C$main.c$395$4_0$258	= .
+	.globl	C$main.c$395$4_0$258
+;main.c:395: Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
 	ld	a, (#_currentPlayer)
 	or	a, a
 	jr	NZ, 00160$
@@ -3171,9 +3299,9 @@ _main::
 	ld	a, (hl)
 	ldhl	sp,	#3
 	ld	(hl), a
-	C$main.c$372$4_0$248	= .
-	.globl	C$main.c$372$4_0$248
-;main.c:372: int dx = (cursorx - 4) - pieces[selectedCoords].x;
+	C$main.c$399$4_0$258	= .
+	.globl	C$main.c$399$4_0$258
+;main.c:399: int dx = (cursorx - 4) - pieces[selectedCoords].x;
 	ld	a, (#_cursorx)
 	ldhl	sp,	#14
 	ld	(hl+), a
@@ -3257,9 +3385,9 @@ _main::
 	ld	a, (hl)
 	ldhl	sp,	#9
 	ld	(hl), a
-	C$main.c$373$4_0$248	= .
-	.globl	C$main.c$373$4_0$248
-;main.c:373: int dy = (cursory - 4) - pieces[selectedCoords].y;
+	C$main.c$400$4_0$258	= .
+	.globl	C$main.c$400$4_0$258
+;main.c:400: int dy = (cursory - 4) - pieces[selectedCoords].y;
 	ld	a, (#_cursory)
 	ldhl	sp,	#14
 	ld	(hl+), a
@@ -3319,9 +3447,9 @@ _main::
 	ldhl	sp,	#15
 	ld	(hl-), a
 	ld	(hl), e
-	C$main.c$374$4_0$248	= .
-	.globl	C$main.c$374$4_0$248
-;main.c:374: if (cursorx - 4 == pieces[selectedCoords].x && cursory - 4 == pieces[selectedCoords].y) {
+	C$main.c$401$4_0$258	= .
+	.globl	C$main.c$401$4_0$258
+;main.c:401: if (cursorx - 4 == pieces[selectedCoords].x && cursory - 4 == pieces[selectedCoords].y) {
 	ldhl	sp,	#4
 	ld	a, (hl+)
 	inc	hl
@@ -3344,9 +3472,9 @@ _main::
 	jp	Z,00146$
 00311$:
 00142$:
-	C$main.c$376$4_0$248	= .
-	.globl	C$main.c$376$4_0$248
-;main.c:376: } else if (isValidMove(cursorx - 4, cursory - 4, currentPlayer, selectedCoords)) {
+	C$main.c$403$4_0$258	= .
+	.globl	C$main.c$403$4_0$258
+;main.c:403: } else if (isValidMove(cursorx - 4, cursory - 4, currentPlayer, selectedCoords)) {
 	ld	a, (#_cursory)
 	add	a, #0xfc
 	ld	e, a
@@ -3369,16 +3497,16 @@ _main::
 	call	_isValidMove
 	bit	0,a
 	jp	Z, 00146$
-	C$main.c$377$5_0$250	= .
-	.globl	C$main.c$377$5_0$250
-;main.c:377: if (hasValidCaptureMoves(currentPlayer)) {
+	C$main.c$404$5_0$260	= .
+	.globl	C$main.c$404$5_0$260
+;main.c:404: if (hasValidCaptureMoves(currentPlayer)) {
 	ld	a, (#_currentPlayer)
 	call	_hasValidCaptureMoves
 	bit	0,a
 	jp	Z, 00137$
-	C$main.c$378$6_0$251	= .
-	.globl	C$main.c$378$6_0$251
-;main.c:378: if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
+	C$main.c$405$6_0$261	= .
+	.globl	C$main.c$405$6_0$261
+;main.c:405: if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
 	ldhl	sp,	#8
 	ld	a, (hl+)
 	ld	e, a
@@ -3402,9 +3530,9 @@ _main::
 	or	a, d
 	jp	NZ,00146$
 00127$:
-	C$main.c$379$7_0$252	= .
-	.globl	C$main.c$379$7_0$252
-;main.c:379: int capturedIndex = getCaptureIndex(((cursorx - 4) - (dx/2)), ((cursory - 4) - (dy/2)), opponentPieces, numOpponentPieces);
+	C$main.c$406$7_0$262	= .
+	.globl	C$main.c$406$7_0$262
+;main.c:406: int capturedIndex = getCaptureIndex(((cursorx - 4) - (dx/2)), ((cursory - 4) - (dy/2)), opponentPieces, numOpponentPieces);
 	ld	a, (#_cursory)
 	add	a, #0xfc
 	ldhl	sp,	#13
@@ -3499,16 +3627,16 @@ _main::
 	ldhl	sp,	#19
 	ld	a, (hl)
 	call	_getCaptureIndex
-	C$main.c$380$7_0$252	= .
-	.globl	C$main.c$380$7_0$252
-;main.c:380: if (capturedIndex != -1) {
+	C$main.c$407$7_0$262	= .
+	.globl	C$main.c$407$7_0$262
+;main.c:407: if (capturedIndex != -1) {
 	ld	a, c
 	and	a, b
 	inc	a
 	jp	Z,00146$
-	C$main.c$381$8_0$253	= .
-	.globl	C$main.c$381$8_0$253
-;main.c:381: opponentPieces[capturedIndex].x = 0;
+	C$main.c$408$8_0$263	= .
+	.globl	C$main.c$408$8_0$263
+;main.c:408: opponentPieces[capturedIndex].x = 0;
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -3524,15 +3652,15 @@ _main::
 	ld	b, h
 	xor	a, a
 	ld	(bc), a
-	C$main.c$382$8_0$253	= .
-	.globl	C$main.c$382$8_0$253
-;main.c:382: opponentPieces[capturedIndex].y = 0;
+	C$main.c$409$8_0$263	= .
+	.globl	C$main.c$409$8_0$263
+;main.c:409: opponentPieces[capturedIndex].y = 0;
 	inc	bc
 	xor	a, a
 	ld	(bc), a
-	C$main.c$383$8_0$253	= .
-	.globl	C$main.c$383$8_0$253
-;main.c:383: pieces[selectedCoords].x = cursorx - 4; 
+	C$main.c$410$8_0$263	= .
+	.globl	C$main.c$410$8_0$263
+;main.c:410: pieces[selectedCoords].x = cursorx - 4; 
 	ld	hl, #_selectedCoords
 	ld	a, (hl+)
 	ld	c, a
@@ -3551,9 +3679,9 @@ _main::
 	ld	a, (#_cursorx)
 	add	a, #0xfc
 	ld	(bc), a
-	C$main.c$384$8_0$253	= .
-	.globl	C$main.c$384$8_0$253
-;main.c:384: pieces[selectedCoords].y = cursory - 4;
+	C$main.c$411$8_0$263	= .
+	.globl	C$main.c$411$8_0$263
+;main.c:411: pieces[selectedCoords].y = cursory - 4;
 	ld	hl, #_selectedCoords
 	ld	a, (hl+)
 	ld	c, a
@@ -3573,9 +3701,9 @@ _main::
 	ld	a, (#_cursory)
 	add	a, #0xfc
 	ld	(bc), a
-	C$main.c$385$8_0$253	= .
-	.globl	C$main.c$385$8_0$253
-;main.c:385: promoteToKing(pieces, numPieces, currentPlayer);
+	C$main.c$412$8_0$263	= .
+	.globl	C$main.c$412$8_0$263
+;main.c:412: promoteToKing(pieces, numPieces, currentPlayer);
 	ld	a, (#_currentPlayer)
 	push	af
 	inc	sp
@@ -3585,57 +3713,57 @@ _main::
 	ld	e, a
 	ld	d, (hl)
 	call	_promoteToKing
-	C$main.c$386$8_0$253	= .
-	.globl	C$main.c$386$8_0$253
-;main.c:386: printBlack();
+	C$main.c$413$8_0$263	= .
+	.globl	C$main.c$413$8_0$263
+;main.c:413: printBlack();
 	call	_printBlack
-	C$main.c$387$8_0$253	= .
-	.globl	C$main.c$387$8_0$253
-;main.c:387: printWhite();
+	C$main.c$414$8_0$263	= .
+	.globl	C$main.c$414$8_0$263
+;main.c:414: printWhite();
 	call	_printWhite
-	C$main.c$388$8_0$253	= .
-	.globl	C$main.c$388$8_0$253
-;main.c:388: if (hasValidCaptureMoves(currentPlayer)) {
+	C$main.c$415$8_0$263	= .
+	.globl	C$main.c$415$8_0$263
+;main.c:415: if (hasValidCaptureMoves(currentPlayer)) {
 	ld	a, (#_currentPlayer)
 	call	_hasValidCaptureMoves
 	bit	0,a
 	jp	NZ, 00146$
-	C$main.c$391$9_0$255	= .
-	.globl	C$main.c$391$9_0$255
-;main.c:391: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$418$9_0$265	= .
+	.globl	C$main.c$418$9_0$265
+;main.c:418: if (currentPlayer == BLACK_PLAYER) {
 	ld	hl, #_currentPlayer
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00120$
-	C$main.c$392$10_0$256	= .
-	.globl	C$main.c$392$10_0$256
-;main.c:392: currentPlayer = WHITE_PLAYER;
+	C$main.c$419$10_0$266	= .
+	.globl	C$main.c$419$10_0$266
+;main.c:419: currentPlayer = WHITE_PLAYER;
 	ld	(hl), #0x01
 	jr	00121$
 00120$:
-	C$main.c$394$10_0$257	= .
-	.globl	C$main.c$394$10_0$257
-;main.c:394: currentPlayer = BLACK_PLAYER;
+	C$main.c$421$10_0$267	= .
+	.globl	C$main.c$421$10_0$267
+;main.c:421: currentPlayer = BLACK_PLAYER;
 	ld	hl, #_currentPlayer
 	ld	(hl), #0x00
 00121$:
-	C$main.c$396$9_0$255	= .
-	.globl	C$main.c$396$9_0$255
-;main.c:396: printTurn();
+	C$main.c$423$9_0$265	= .
+	.globl	C$main.c$423$9_0$265
+;main.c:423: printTurn();
 	call	_printTurn
-	C$main.c$397$9_0$255	= .
-	.globl	C$main.c$397$9_0$255
-;main.c:397: pieceSelected = false;
+	C$main.c$424$9_0$265	= .
+	.globl	C$main.c$424$9_0$265
+;main.c:424: pieceSelected = false;
 	ld	hl, #_pieceSelected
 	ld	(hl), #0x00
-	C$main.c$398$9_0$255	= .
-	.globl	C$main.c$398$9_0$255
-;main.c:398: break; // Exit the loop after a piece has been moved
+	C$main.c$425$9_0$265	= .
+	.globl	C$main.c$425$9_0$265
+;main.c:425: break; // Exit the loop after a piece has been moved
 	jp	00151$
 00137$:
-	C$main.c$402$5_0$250	= .
-	.globl	C$main.c$402$5_0$250
-;main.c:402: } else if (abs(dx) == 1 * SQUARE_SIZE || abs(dy) == 1 * SQUARE_SIZE) {
+	C$main.c$429$5_0$260	= .
+	.globl	C$main.c$429$5_0$260
+;main.c:429: } else if (abs(dx) == 1 * SQUARE_SIZE || abs(dy) == 1 * SQUARE_SIZE) {
 	ldhl	sp,	#8
 	ld	a, (hl+)
 	ld	e, a
@@ -3659,9 +3787,9 @@ _main::
 	or	a, d
 	jp	NZ,00146$
 00133$:
-	C$main.c$403$6_0$258	= .
-	.globl	C$main.c$403$6_0$258
-;main.c:403: pieces[selectedCoords].x = cursorx - 4; 
+	C$main.c$430$6_0$268	= .
+	.globl	C$main.c$430$6_0$268
+;main.c:430: pieces[selectedCoords].x = cursorx - 4; 
 	ld	hl, #_selectedCoords
 	ld	a, (hl+)
 	ld	c, a
@@ -3702,9 +3830,9 @@ _main::
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), c
-	C$main.c$404$6_0$258	= .
-	.globl	C$main.c$404$6_0$258
-;main.c:404: pieces[selectedCoords].y = cursory - 4;
+	C$main.c$431$6_0$268	= .
+	.globl	C$main.c$431$6_0$268
+;main.c:431: pieces[selectedCoords].y = cursory - 4;
 	ld	hl, #_selectedCoords
 	ld	a, (hl+)
 	ld	c, a
@@ -3759,9 +3887,9 @@ _main::
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), c
-	C$main.c$405$6_0$258	= .
-	.globl	C$main.c$405$6_0$258
-;main.c:405: promoteToKing(pieces, numPieces, currentPlayer);
+	C$main.c$432$6_0$268	= .
+	.globl	C$main.c$432$6_0$268
+;main.c:432: promoteToKing(pieces, numPieces, currentPlayer);
 	ld	a, (#_currentPlayer)
 	push	af
 	inc	sp
@@ -3771,82 +3899,82 @@ _main::
 	ld	e, a
 	ld	d, (hl)
 	call	_promoteToKing
-	C$main.c$406$6_0$258	= .
-	.globl	C$main.c$406$6_0$258
-;main.c:406: if (currentPlayer == BLACK_PLAYER) {
+	C$main.c$433$6_0$268	= .
+	.globl	C$main.c$433$6_0$268
+;main.c:433: if (currentPlayer == BLACK_PLAYER) {
 	ld	hl, #_currentPlayer
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00131$
-	C$main.c$407$7_0$259	= .
-	.globl	C$main.c$407$7_0$259
-;main.c:407: currentPlayer = WHITE_PLAYER;
+	C$main.c$434$7_0$269	= .
+	.globl	C$main.c$434$7_0$269
+;main.c:434: currentPlayer = WHITE_PLAYER;
 	ld	(hl), #0x01
 	jr	00132$
 00131$:
-	C$main.c$409$7_0$260	= .
-	.globl	C$main.c$409$7_0$260
-;main.c:409: currentPlayer = BLACK_PLAYER;
+	C$main.c$436$7_0$270	= .
+	.globl	C$main.c$436$7_0$270
+;main.c:436: currentPlayer = BLACK_PLAYER;
 	ld	hl, #_currentPlayer
 	ld	(hl), #0x00
 00132$:
-	C$main.c$411$6_0$258	= .
-	.globl	C$main.c$411$6_0$258
-;main.c:411: printBlack();
+	C$main.c$438$6_0$268	= .
+	.globl	C$main.c$438$6_0$268
+;main.c:438: printBlack();
 	call	_printBlack
-	C$main.c$412$6_0$258	= .
-	.globl	C$main.c$412$6_0$258
-;main.c:412: printWhite();
+	C$main.c$439$6_0$268	= .
+	.globl	C$main.c$439$6_0$268
+;main.c:439: printWhite();
 	call	_printWhite
-	C$main.c$413$6_0$258	= .
-	.globl	C$main.c$413$6_0$258
-;main.c:413: printTurn();
+	C$main.c$440$6_0$268	= .
+	.globl	C$main.c$440$6_0$268
+;main.c:440: printTurn();
 	call	_printTurn
-	C$main.c$414$6_0$258	= .
-	.globl	C$main.c$414$6_0$258
-;main.c:414: pieceSelected = false;
+	C$main.c$441$6_0$268	= .
+	.globl	C$main.c$441$6_0$268
+;main.c:441: pieceSelected = false;
 	ld	hl, #_pieceSelected
 	ld	(hl), #0x00
-	C$main.c$415$6_0$258	= .
-	.globl	C$main.c$415$6_0$258
-;main.c:415: break; // Exit the loop after a piece has been moved
+	C$main.c$442$6_0$268	= .
+	.globl	C$main.c$442$6_0$268
+;main.c:442: break; // Exit the loop after a piece has been moved
 	jr	00151$
 00146$:
-	C$main.c$419$3_0$247	= .
-	.globl	C$main.c$419$3_0$247
-;main.c:419: if (joypad_input & J_B) {
+	C$main.c$446$3_0$257	= .
+	.globl	C$main.c$446$3_0$257
+;main.c:446: if (joypad_input & J_B) {
 	ld	a, (#_joypad_input)
 	bit	5, a
 	jp	Z,00149$
-	C$main.c$420$4_0$261	= .
-	.globl	C$main.c$420$4_0$261
-;main.c:420: pieceSelected = false;
+	C$main.c$447$4_0$271	= .
+	.globl	C$main.c$447$4_0$271
+;main.c:447: pieceSelected = false;
 	ld	hl, #_pieceSelected
 	ld	(hl), #0x00
-	C$main.c$421$4_0$261	= .
-	.globl	C$main.c$421$4_0$261
-;main.c:421: printBlack();
+	C$main.c$448$4_0$271	= .
+	.globl	C$main.c$448$4_0$271
+;main.c:448: printBlack();
 	call	_printBlack
-	C$main.c$422$4_0$261	= .
-	.globl	C$main.c$422$4_0$261
-;main.c:422: printWhite();
+	C$main.c$449$4_0$271	= .
+	.globl	C$main.c$449$4_0$271
+;main.c:449: printWhite();
 	call	_printWhite
-	C$main.c$423$2_0$239	= .
-	.globl	C$main.c$423$2_0$239
-;main.c:423: break;
+	C$main.c$450$2_0$249	= .
+	.globl	C$main.c$450$2_0$249
+;main.c:450: break;
 00151$:
-	C$main.c$426$2_0$239	= .
-	.globl	C$main.c$426$2_0$239
-;main.c:426: delay(100);
+	C$main.c$453$2_0$249	= .
+	.globl	C$main.c$453$2_0$249
+;main.c:453: delay(100);
 	ld	de, #0x0064
 	call	_delay
 	jp	00153$
-	C$main.c$428$1_0$238	= .
-	.globl	C$main.c$428$1_0$238
-;main.c:428: }
+	C$main.c$455$1_0$248	= .
+	.globl	C$main.c$455$1_0$248
+;main.c:455: }
 	add	sp, #16
-	C$main.c$428$1_0$238	= .
-	.globl	C$main.c$428$1_0$238
+	C$main.c$455$1_0$248	= .
+	.globl	C$main.c$455$1_0$248
 	XG$main$0$0	= .
 	.globl	XG$main$0$0
 	ret
@@ -4434,6 +4562,60 @@ __xinit__currentPlayerWhiteText:
 	.db #0x69	; 105	'i'
 	.db #0x74	; 116	't'
 	.db #0x65	; 101	'e'
+	.db #0x00	; 0
+	.db #0x00	; 0
+Fmain$__xinit_clearText$0_0$0 == .
+__xinit__clearText:
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+Fmain$__xinit_whiteWins$0_0$0 == .
+__xinit__whiteWins:
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x57	; 87	'W'
+	.db #0x68	; 104	'h'
+	.db #0x69	; 105	'i'
+	.db #0x74	; 116	't'
+	.db #0x65	; 101	'e'
+	.db #0x00	; 0
+	.db #0x57	; 87	'W'
+	.db #0x69	; 105	'i'
+	.db #0x6e	; 110	'n'
+	.db #0x73	; 115	's'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+Fmain$__xinit_blackWins$0_0$0 == .
+__xinit__blackWins:
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x42	; 66	'B'
+	.db #0x6c	; 108	'l'
+	.db #0x61	; 97	'a'
+	.db #0x63	; 99	'c'
+	.db #0x6b	; 107	'k'
+	.db #0x00	; 0
+	.db #0x57	; 87	'W'
+	.db #0x69	; 105	'i'
+	.db #0x6e	; 110	'n'
+	.db #0x73	; 115	's'
+	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
 Fmain$__xinit_blackKing$0_0$0 == .
