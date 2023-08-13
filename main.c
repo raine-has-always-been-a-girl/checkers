@@ -16,8 +16,8 @@ UBYTE lastButtonState = 0; // Variable to store the previous button state
 UINT16 debounceTimer = 0; // Variable to track the time since the last button press
 int selectedPieceIndex = -1;
 
-UINT8 cursorx = 28;
-UINT8 cursory = 28;
+UINT8 cursorx = 32;
+UINT8 cursory = 32;
 UBYTE joypad_input;
 UINT8 currentPlayer = BLACK_PLAYER;
 int selectedCoords = 0;
@@ -56,20 +56,20 @@ unsigned char map[] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 unsigned char squareTL[] = {
-  0xFF,0xFF,0x80,0x80,0x80,0x80,0x80,0x80,
-  0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80
+  0xFF,0xFF,0xFF,0xFF,0xC0,0xC0,0xC0,0xC0,
+  0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0
 };
 unsigned char squareTR[] = {
-  0xFF,0xFF,0x01,0x01,0x01,0x01,0x01,0x01,
-  0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01
+  0xFF,0xFF,0xFF,0xFF,0x03,0x03,0x03,0x03,
+  0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03
 };
 unsigned char squareBL[] = {
-  0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,
-  0x80,0x80,0x80,0x80,0x80,0x80,0xFF,0xFF
+  0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,0xC0,
+  0xC0,0xC0,0xC0,0xC0,0xFF,0xFF,0xFF,0xFF
 };
 unsigned char squareBR[] = {
-  0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,
-  0x01,0x01,0x01,0x01,0x01,0x01,0xFF,0xFF
+  0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,
+  0x03,0x03,0x03,0x03,0xFF,0xFF,0xFF,0xFF
 };
 unsigned char black_piece[] = {
   0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
@@ -94,13 +94,11 @@ unsigned char whiteKing[] = {
   0x81,0x7E,0xC3,0x3C,0xFF,0x00,0xFF,0x00
 };
 void moveSquare() {
-      move_sprite(0, cursorx - 4, cursory - 4);
-      move_sprite(1, cursorx + 4, cursory - 4);
-      move_sprite(2, cursorx - 4, cursory + 4);
-      move_sprite(3, cursorx + 4, cursory + 4);
+      move_sprite(0, cursorx - 8, cursory - 8);
+      move_sprite(1, cursorx + 0, cursory - 8);
+      move_sprite(2, cursorx - 8, cursory + 0);
+      move_sprite(3, cursorx + 0, cursory + 0);
 }
-
-// Define a structure to store piece information (x and y coordinates)
 typedef struct {
     UINT8 x;
     UINT8 y;
@@ -116,6 +114,15 @@ Piece whitePieces[MAX_WHITE_PIECES] = {
     {44, 124}, {76, 124}, {108, 124}, {140, 124},
     {28, 108}, {60, 108}, {92, 108}, {124, 108}
 };
+void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
+    for (int i = 0; i < numPieces; i++) {
+        if (pieces[i].y == 28 && player == WHITE_PLAYER) {
+            pieces[i].isKing = true;
+        } else if (pieces[i].y == 140 && player == BLACK_PLAYER) {
+            pieces[i].isKing = true;
+        }
+    }
+}
 void dpad() {
     if (joypad_input & J_RIGHT) {
         cursorx = cursorx + SQUARE_SIZE;
@@ -188,54 +195,21 @@ void printWhite() {
         move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
     }
 }
-void modifyCoordinates(Piece input[], int selectedCoords, int newX, int newY) {
-    // Check if the given index is within the valid range of the array
-    if (selectedCoords >= 0) {
-        // Modify the coordinates at the given index
-        input[selectedCoords].x = newX;
-        input[selectedCoords].y = newY;
-        // Check if the move is promoting the piece to a king
-        if (currentPlayer == WHITE_PLAYER && input[selectedCoords].y == 28 ||
-            currentPlayer == BLACK_PLAYER && input[selectedCoords].y == 140) {
-            input[selectedCoords].isKing = true;
-            // Add the following lines to update the sprite tile when the piece is promoted
-            if (currentPlayer == BLACK_PLAYER) {
-                set_sprite_tile(selectedPieceIndex, 8); // Use the black king sprite tile
-            } else {
-                set_sprite_tile(selectedPieceIndex, 20); // Use the white king sprite tile
-            }
-        }
-    }
-}
 bool isMoveWithinBoard(UINT8 x, UINT8 y) {
-    return (x >= 20 && x <=140 && y >= 20 && y <= 140);
+    return (x >= 20 && x <=148 && y >= 20 && y <= 148);
 }
-bool capture(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces) {
-
+int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
     // Check collision for each piece
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < numOpponentPieces; i++) {
         UINT8 pieceX = opponentPieces[i].x;
         UINT8 pieceY = opponentPieces[i].y;
-
-        // Calculate the boundaries of the sprite
-        UINT8 pieceLeft = pieceX - 4;
-        UINT8 pieceRight = pieceX + 4;
-        UINT8 pieceTop = pieceY - 4;
-        UINT8 pieceBottom = pieceY + 4;
-        UINT8 tileLeft = capturedX - 4;
-        UINT8 tileRight = capturedX + 4;
-        UINT8 tileTop = capturedY - 4;
-        UINT8 tileBottom = capturedY + 4;
-
-        // Check for collision by comparing boundaries
-        if (tileLeft <= pieceRight && tileRight >= pieceLeft &&
-            tileTop <= pieceBottom && tileBottom >= pieceTop) {
-            opponentPieces[i].x = 0;
-            opponentPieces[i].y = 0;
-            return true;
+        if (capturedX == pieceX && capturedY == pieceY) {
+            // Captured piece found, return its index
+            return i;
         }
     }
-    return false;
+    // If no collision is found, return -1 to indicate no piece was captured
+    return -1;
 }
 // Function to check if a move is valid
 bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
@@ -243,7 +217,6 @@ bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selected
     Piece* opponentPieces;
     int numPieces;
     int numOpponentPieces;
-
     // Set the correct piece array based on the current player
     if (currentPlayer == BLACK_PLAYER) {
         pieces = blackPieces;
@@ -256,32 +229,26 @@ bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selected
         numPieces = MAX_WHITE_PIECES;
         numOpponentPieces = MAX_BLACK_PIECES;
     }
-
+    // Calculate the distance moved in x and y direction
+    int dx = cursorx - pieces[selectedCoords].x;
+    int dy = cursory - pieces[selectedCoords].y;
     // Check if the cursor is within the bounds of the board
-    if (cursorx > 160 || cursorx <= 20 || cursory > 160 || cursory <= 20) {
+    if (!(isMoveWithinBoard(cursorx, cursory))) {
         return false;
     }
-
     // Check if the selectedCoords is within the valid range of the array
     if (selectedCoords < 0 || selectedCoords >= numPieces) {
         return false;
     }
-
-    // Calculate the distance moved in x and y direction
-    int dx = cursorx - pieces[selectedCoords].x;
-    int dy = cursory - pieces[selectedCoords].y;
-
     // Check if the piece is moving diagonally
     if (abs(dx) != abs(dy)) {
         return false;
     }
-
     // Check if the piece is moving forward or backward based on the player's color
     if ((currentPlayer == BLACK_PLAYER && dy < 0 && !pieces[selectedCoords].isKing) ||
         (currentPlayer == WHITE_PLAYER && dy > 0 && !pieces[selectedCoords].isKing)) {
         return false;
     }
-
     // Check if the target position is empty
     for (int i = 0; i < numPieces; i++) {
         if (whitePieces[i].x == cursorx && whitePieces[i].y == cursory) {
@@ -291,195 +258,16 @@ bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selected
             return false;
         }
     }
-
     if (abs(dx) > 2 * SQUARE_SIZE || abs(dy) > 2 * SQUARE_SIZE) {
         return false;
-    } else if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
-        // Check if the move is a "capture" move
-        UINT8 capturedX = pieces[selectedCoords].x + (dx / 2);
-        UINT8 capturedY = pieces[selectedCoords].y + (dy / 2);
-        if (capture(capturedX, capturedY, opponentPieces)) {
-            return true;
-        } else {
-            return false;
-        }
     }
+    // Move is valid, return true
     return true;
-}
-// Function to check if the current move is a capture or non-capture move
-bool isCaptureMove(UINT8 cursorx, UINT8 cursory, int currentPlayer, int selectedCoords) {
-    Piece* pieces;
-    Piece* opponentPieces;
-    int numPieces;
-    int numOpponentPieces;
-
-    // Set the correct piece array based on the current player
-    if (currentPlayer == BLACK_PLAYER) {
-        pieces = blackPieces;
-        opponentPieces = whitePieces;
-        numPieces = MAX_BLACK_PIECES;
-        numOpponentPieces = MAX_WHITE_PIECES;
-    } else {
-        pieces = whitePieces;
-        opponentPieces = blackPieces;
-        numPieces = MAX_WHITE_PIECES;
-        numOpponentPieces = MAX_BLACK_PIECES;
-    }
-    // Calculate the distance moved in x and y direction
-    int dx = cursorx - pieces[selectedCoords].x;
-    int dy = cursory - pieces[selectedCoords].y;
-    if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
-        // Check collision for each piece
-        for (int i = 0; i < 12; i++) {
-            UINT8 pieceX = opponentPieces[i].x;
-            UINT8 pieceY = opponentPieces[i].y;
-
-            // Calculate the boundaries of the sprite
-            UINT8 pieceLeft = pieceX - 4;
-            UINT8 pieceRight = pieceX + 4;
-            UINT8 pieceTop = pieceY - 4;
-            UINT8 pieceBottom = pieceY + 4;
-            UINT8 tileLeft = cursorx - 4;
-            UINT8 tileRight = cursorx + 4;
-            UINT8 tileTop = cursory - 4;
-            UINT8 tileBottom = cursory + 4;
-
-            // Check for collision by comparing boundaries
-            if (tileLeft <= pieceRight && tileRight >= pieceLeft &&
-                tileTop <= pieceBottom && tileBottom >= pieceTop) {
-                // The move is a capture move
-                return true;
-            }
-        }
-    }
-    // No capture move found
-    return false;
-}
-bool testValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
-    Piece* pieces;
-    Piece* opponentPieces;
-    int numPieces;
-    int numOpponentPieces;
-
-    // Set the correct piece array based on the current player
-    if (currentPlayer == BLACK_PLAYER) {
-        pieces = blackPieces;
-        opponentPieces = whitePieces;
-        numPieces = MAX_BLACK_PIECES;
-        numOpponentPieces = MAX_WHITE_PIECES;
-    } else {
-        pieces = whitePieces;
-        opponentPieces = blackPieces;
-        numPieces = MAX_WHITE_PIECES;
-        numOpponentPieces = MAX_BLACK_PIECES;
-    }
-
-    // Check if the cursor is within the bounds of the board
-    if (cursorx > 160 || cursorx <= 20 || cursory > 160 || cursory <= 20) {
-        return false;
-    }
-
-    // Check if the selectedCoords is within the valid range of the array
-    if (selectedCoords < 0 || selectedCoords >= numPieces) {
-        return false;
-    }
-
-    // Calculate the distance moved in x and y direction
-    int dx = cursorx - pieces[selectedCoords].x;
-    int dy = cursory - pieces[selectedCoords].y;
-
-    // Check if the piece is moving diagonally
-    if (abs(dx) != abs(dy)) {
-        return false;
-    }
-
-    // Check if the piece is moving forward or backward based on the player's color
-    if ((currentPlayer == BLACK_PLAYER && dy < 0 && !pieces[selectedCoords].isKing) ||
-        (currentPlayer == WHITE_PLAYER && dy > 0 && !pieces[selectedCoords].isKing)) {
-        return false;
-    }
-
-    // Check if the target position is empty
-    for (int i = 0; i < numPieces; i++) {
-        if (whitePieces[i].x == cursorx && whitePieces[i].y == cursory) {
-            return false;
-        }
-        if (blackPieces[i].x == cursorx && blackPieces[i].y == cursory) {
-            return false;
-        }
-    }
-
-    if (abs(dx) > 2 * SQUARE_SIZE || abs(dy) > 2 * SQUARE_SIZE) {
-        return false;
-    } else if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
-        // Check if the move is a "capture" move
-        UINT8 capturedX = pieces[selectedCoords].x + (dx / 2);
-        UINT8 capturedY = pieces[selectedCoords].y + (dy / 2);
-        if (isCaptureMove(capturedX, capturedY, currentPlayer, selectedCoords)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
-// Function to test every legal move and count valid non-capture and capture moves
-void testMoves(UINT8 currentPlayer, int* validNonCaptureMoves, int* validCaptureMoves) {
-    int numPieces;
-    Piece* pieces;
-    Piece* opponentPieces;
-
-    // Set the correct piece arrays based on the current player
-    if (currentPlayer == BLACK_PLAYER) {
-        pieces = blackPieces;
-        opponentPieces = whitePieces;
-        numPieces = MAX_BLACK_PIECES;
-    } else {
-        pieces = whitePieces;
-        opponentPieces = blackPieces;
-        numPieces = MAX_WHITE_PIECES;
-    }
-
-    *validNonCaptureMoves = 0;
-    *validCaptureMoves = 0;
-
-    // Loop through all pieces of the current player
-    for (int i = 0; i < numPieces; i++) {
-        UINT8 pieceX = pieces[i].x;
-        UINT8 pieceY = pieces[i].y;
-
-        // Calculate the possible moves for the piece
-        int possibleMoves[8][2] = {
-            {pieceX + SQUARE_SIZE, pieceY + SQUARE_SIZE},
-            {pieceX - SQUARE_SIZE, pieceY + SQUARE_SIZE},
-            {pieceX + SQUARE_SIZE, pieceY - SQUARE_SIZE},
-            {pieceX - SQUARE_SIZE, pieceY - SQUARE_SIZE},
-            {pieceX + 2 * SQUARE_SIZE, pieceY + 2 * SQUARE_SIZE},
-            {pieceX - 2 * SQUARE_SIZE, pieceY + 2 * SQUARE_SIZE},
-            {pieceX + 2 * SQUARE_SIZE, pieceY - 2 * SQUARE_SIZE},
-            {pieceX - 2 * SQUARE_SIZE, pieceY - 2 * SQUARE_SIZE}
-        };
-
-        for (int j = 0; j < 8; j++) {
-            UINT8 moveX = possibleMoves[j][0];
-            UINT8 moveY = possibleMoves[j][1];
-
-            // Check if the move is valid and update the counters
-            if (testValidMove(moveX, moveY, currentPlayer, i)) {
-                if (!isCaptureMove(moveX, moveY, currentPlayer, i)) {
-                    (*validNonCaptureMoves)++;
-                } else {
-                    (*validCaptureMoves)++;
-                }
-            }
-        }
-    }
 }
 // Function to check collision between cursor and pieces
 bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
     int numPieces;
     Piece* pieces;
-
     // Set the correct piece array based on the current player
     if (currentPlayer == BLACK_PLAYER) {
         pieces = blackPieces;
@@ -488,27 +276,13 @@ bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
         pieces = whitePieces;
         numPieces = 12;
     }
-
     // Check collision for each piece
     for (int i = 0; i < numPieces; i++) {
         UINT8 pieceX = pieces[i].x;
         UINT8 pieceY = pieces[i].y;
-
-        // Calculate the boundaries of the piece sprite
-        UINT8 pieceLeft = pieceX - 4;
-        UINT8 pieceRight = pieceX + 4;
-        UINT8 pieceTop = pieceY - 4;
-        UINT8 pieceBottom = pieceY + 4;
-
-        // Calculate the boundaries of the cursor sprite
-        UINT8 cursorLeft = cursorx - 4;
-        UINT8 cursorRight = cursorx + 4;
-        UINT8 cursorTop = cursory - 4;
-        UINT8 cursorBottom = cursory + 4;
-
         // Check for collision by comparing boundaries
-        if (cursorLeft <= pieceRight && cursorRight >= pieceLeft &&
-            cursorTop <= pieceBottom && cursorBottom >= pieceTop) {
+        if (cursorx == (pieceX) &&
+            cursory == (pieceY)) {
             if (currentPlayer == BLACK_PLAYER) {
                 selectedCoords = i;
                 selectedPieceIndex = i + 4;
@@ -523,6 +297,33 @@ bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
     selectedPieceIndex = -1;
     return false;
 }
+bool hasValidCaptureMoves(UINT8 currentPlayer) {
+    Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+    Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
+    int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
+    int numOpponentPieces = (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES;
+
+    for (int i = 0; i < numPieces; i++) {
+        if (isValidMove(pieces[i].x - 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x - 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
+            isValidMove(pieces[i].x + 2 * SQUARE_SIZE, pieces[i].y + 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x + 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y + 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
+            isValidMove(pieces[i].x - 2 * SQUARE_SIZE, pieces[i].y - 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x - 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y - 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1) ||
+            isValidMove(pieces[i].x + 2 * SQUARE_SIZE, pieces[i].y - 2 * SQUARE_SIZE, currentPlayer, i) && (getCaptureIndex((((pieces[i].x + 2 * SQUARE_SIZE) + (pieces[i].x)) / 2), (((pieces[i].y - 2 * SQUARE_SIZE) + (pieces[i].y)) / 2), opponentPieces, numOpponentPieces) != -1)) {
+            return true; // Found at least one valid capture move
+        }
+    }
+    return false; // No valid capture moves found for any piece
+}
+bool hasValidNonCaptureMoves(Piece* pieces, int numPieces, UINT8 currentPlayer) {
+    for (int i = 0; i < numPieces; i++) {
+        if (isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
+            isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y - SQUARE_SIZE, currentPlayer, i) ||
+            isValidMove(pieces[i].x - SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i) ||
+            isValidMove(pieces[i].x + SQUARE_SIZE, pieces[i].y + SQUARE_SIZE, currentPlayer, i)) {
+            return true; // Found at least one valid move
+        }
+    }
+    return false; // No valid moves found for any piece
+}
 void main() {
     font();
     printTurn();
@@ -533,7 +334,6 @@ void main() {
     SHOW_BKG;  
     SHOW_SPRITES;
     SHOW_WIN;
-    Piece* input;
     while(1) {
         joypad_input = joypad();
             // Debounce the button input
@@ -544,17 +344,16 @@ void main() {
             debounceTimer += 100; // Increment the debounce timer based on the loop delay (100ms in this code)
             continue; // Skip processing input until the debounce delay is reached
         }
-        
         dpad();
         if (joypad_input & J_A) {
             if (pieceSelected == false) {
-                checkCollision(cursorx, cursory, currentPlayer);
+                checkCollision(cursorx - 4, cursory - 4, currentPlayer);
                 if (currentPlayer == BLACK_PLAYER) {
                     if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
                         pieceSelected = true;
                     }
                 } else if (selectedPieceIndex >= 16 && selectedPieceIndex < 28) {
-                        pieceSelected = true;
+                    pieceSelected = true;
                 }
             }
         }
@@ -562,37 +361,59 @@ void main() {
             delay(100);
             joypad_input = joypad(); // Update the input inside the loop
             dpad();
-            move_sprite(selectedPieceIndex, cursorx, cursory);
+            move_sprite(selectedPieceIndex, cursorx - 4, cursory - 4);
             if (joypad_input & J_A) {
-                int validNonCaptureMoves, validCaptureMoves;
-                testMoves(currentPlayer, &validNonCaptureMoves, &validCaptureMoves);
-                if (currentPlayer == BLACK_PLAYER){
-                    input = blackPieces;
-                } else {
-                    input = whitePieces;
-                }
-                if (cursorx == input[selectedCoords].x && cursory == input[selectedCoords].y){
-                    pieceSelected = false;
-                    printBlack();
-                    printWhite();
-                    break;
-                } else if ((validCaptureMoves > 0) && (!isCaptureMove(cursorx, cursory, currentPlayer, selectedCoords))) {
-                    pieceSelected = false;
-                    printBlack();
-                    printWhite();
-                    break;
-                } else if (isValidMove(cursorx, cursory, currentPlayer, selectedCoords)) {
-                    modifyCoordinates(input, selectedCoords, cursorx, cursory);
-                    if (currentPlayer == BLACK_PLAYER) {
-                        currentPlayer = WHITE_PLAYER;
-                    } else {
-                        currentPlayer = BLACK_PLAYER;
+                Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
+                Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
+                int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
+                int numOpponentPieces = (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES;
+
+                // Calculate the distance moved in x and y direction
+                int dx = (cursorx - 4) - pieces[selectedCoords].x;
+                int dy = (cursory - 4) - pieces[selectedCoords].y;
+                if (cursorx - 4 == pieces[selectedCoords].x && cursory - 4 == pieces[selectedCoords].y) {
+                    //Do nothing
+                } else if (isValidMove(cursorx - 4, cursory - 4, currentPlayer, selectedCoords)) {
+                    if (hasValidCaptureMoves(currentPlayer)) {
+                        if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
+                            int capturedIndex = getCaptureIndex(((cursorx - 4) - (dx/2)), ((cursory - 4) - (dy/2)), opponentPieces, numOpponentPieces);
+                            if (capturedIndex != -1) {
+                                opponentPieces[capturedIndex].x = 0;
+                                opponentPieces[capturedIndex].y = 0;
+                                pieces[selectedCoords].x = cursorx - 4; 
+                                pieces[selectedCoords].y = cursory - 4;
+                                promoteToKing(pieces, numPieces, currentPlayer);
+                                printBlack();
+                                printWhite();
+                                if (hasValidCaptureMoves(currentPlayer)) {
+                                    // continue the loop
+                                } else {
+                                    if (currentPlayer == BLACK_PLAYER) {
+                                        currentPlayer = WHITE_PLAYER;
+                                    } else {
+                                        currentPlayer = BLACK_PLAYER;
+                                    }
+                                    printTurn();
+                                    pieceSelected = false;
+                                    break; // Exit the loop after a piece has been moved
+                                }
+                            }
+                        }
+                    } else if (abs(dx) == 1 * SQUARE_SIZE || abs(dy) == 1 * SQUARE_SIZE) {
+                        pieces[selectedCoords].x = cursorx - 4; 
+                        pieces[selectedCoords].y = cursory - 4;
+                        promoteToKing(pieces, numPieces, currentPlayer);
+                        if (currentPlayer == BLACK_PLAYER) {
+                            currentPlayer = WHITE_PLAYER;
+                        } else {
+                            currentPlayer = BLACK_PLAYER;
+                        }
+                        printBlack();
+                        printWhite();
+                        printTurn();
+                        pieceSelected = false;
+                        break; // Exit the loop after a piece has been moved
                     }
-                    printBlack();
-                    printWhite();
-                    printTurn();
-                    pieceSelected = false;
-                    break; // Exit the loop after a piece has been moved
                 }
             }
             if (joypad_input & J_B) {
