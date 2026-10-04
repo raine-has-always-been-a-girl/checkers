@@ -352,6 +352,7 @@ void printTurn() {
         move_win(7, 7);
     }
 }
+
 void main() {
     font();
     printTurn();
