@@ -14,7 +14,7 @@
 #define SQUARE_SIZE 16
 #define SPRITE_TILE_BLACK 4
 #define SPRITE_TILE_WHITE 16
-#define DEBOUNCE_DELAY 100 // Adjust this value based on your requirements (in milliseconds)
+#define DEBOUNCE_DELAY 100 // amount of time inbetween cursor moves (in milliseconds) when holding the dpad
 UBYTE lastButtonState = 0; // Variable to store the previous button state
 clock_t debounceClock = 0; // Variable to track the time since the last button press
 int selectedPieceIndex = -1;
@@ -105,12 +105,18 @@ unsigned char whiteKing[] = {
   0xFF,0x00,0xDB,0x24,0x66,0x99,0x81,0x7E,
   0x81,0x7E,0xC3,0x3C,0xFF,0x00,0xFF,0x00
 };
-void moveSquare() {
-      move_sprite(0, cursorx - 8, cursory - 8);
-      move_sprite(1, cursorx + 0, cursory - 8);
-      move_sprite(2, cursorx - 8, cursory + 0);
-      move_sprite(3, cursorx + 0, cursory + 0);
-}
+
+unsigned char board [8][8] = {
+    {0, 2, 0, 2, 0, 2, 0, 2},
+    {2, 0, 2, 0, 2, 0, 2, 0},
+    {0, 2, 0, 2, 0, 2, 0, 2},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {1, 0, 1, 0, 1, 0, 1, 0},
+    {0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0}
+};
+
 typedef struct {
     UINT8 x;
     UINT8 y;
@@ -128,6 +134,61 @@ Piece whitePieces[MAX_WHITE_PIECES] = {
     {28, 44}, {60, 44}, {92, 44}, {124, 44},
     {44, 60}, {76, 60}, {108, 60}, {140, 60}
 };
+
+void font() {
+    font_t min_font;
+    font_init();
+    min_font = font_load(font_ibm_fixed);
+    font_set(min_font);
+}
+
+void printbkg() {
+    set_bkg_data(1, 1, tile1);
+    set_bkg_data(2, 1, tile2);
+    set_bkg_data(3, 1, tile3);
+    set_bkg_tiles(0, 0, 20, 18, map);
+}
+
+void printSquare() {
+    set_sprite_data(0, 1, squareTL);
+    set_sprite_data(1, 1, squareTR);
+    set_sprite_data(2, 1, squareBL);
+    set_sprite_data(3, 1, squareBR);
+    set_sprite_tile(0, 0);
+    set_sprite_tile(1, 1);
+    set_sprite_tile(2, 2);
+    set_sprite_tile(3, 3);
+    moveSquare();
+}
+
+void printBlack() {
+    set_sprite_data(4, 12, black_piece);
+    set_sprite_data(8, 12, blackKing);
+
+    for (int i = 0; i < 12; i++){
+        if (blackPieces[i].isKing) {
+            set_sprite_tile(i + 4, 8); // Use the black king sprite tile
+        } else {
+            set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
+        }
+        move_sprite(i + 4, blackPieces[i].x, blackPieces[i].y);
+    }
+}
+
+void printWhite() {
+    set_sprite_data(5, 12, white_piece);
+    set_sprite_data(20, 12, whiteKing);
+
+    for (int i = 0; i < 12; i++){
+        if (whitePieces[i].isKing) {
+            set_sprite_tile(i + 16, 20); // Use the white king sprite tile
+        } else {
+            set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
+        }
+        move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
+    }
+}
+
 void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
     for (int i = 0; i < numPieces; i++) {
         if (pieces[i].y == 140 && player == WHITE_PLAYER) {
@@ -137,6 +198,14 @@ void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
         }
     }
 }
+
+void moveSquare() {
+      move_sprite(0, cursorx - 8, cursory - 8);
+      move_sprite(1, cursorx + 0, cursory - 8);
+      move_sprite(2, cursorx - 8, cursory + 0);
+      move_sprite(3, cursorx + 0, cursory + 0);
+}
+
 void dpad() {
     if (joypad_input & J_RIGHT) {
         cursorx = cursorx + SQUARE_SIZE;
@@ -152,75 +221,11 @@ void dpad() {
     }
     moveSquare();
 }
-void font() {
-    font_t min_font;
-    font_init();
-    min_font = font_load(font_ibm_fixed);
-    font_set(min_font);
-}
-void printbkg() {
-    set_bkg_data(1, 1, tile1);
-    set_bkg_data(2, 1, tile2);
-    set_bkg_data(3, 1, tile3);
-    set_bkg_tiles(0, 0, 20, 18, map);
-}
-void printSquare() {
-    set_sprite_data(0, 1, squareTL);
-    set_sprite_data(1, 1, squareTR);
-    set_sprite_data(2, 1, squareBL);
-    set_sprite_data(3, 1, squareBR);
-    set_sprite_tile(0, 0);
-    set_sprite_tile(1, 1);
-    set_sprite_tile(2, 2);
-    set_sprite_tile(3, 3);
-    moveSquare();
-}
-void printBlack() {
-    set_sprite_data(4, 12, black_piece);
-    set_sprite_data(8, 12, blackKing);
 
-    for (int i = 0; i < 12; i++){
-        if (blackPieces[i].isKing) {
-            set_sprite_tile(i + 4, 8); // Use the black king sprite tile
-        } else {
-            set_sprite_tile(i + 4, 4); // Use the black regular piece sprite tile
-        }
-        move_sprite(i + 4, blackPieces[i].x, blackPieces[i].y);
-    }
-}
-void printWhite() {
-    set_sprite_data(5, 12, white_piece);
-    set_sprite_data(20, 12, whiteKing);
-
-    for (int i = 0; i < 12; i++){
-        if (whitePieces[i].isKing) {
-            set_sprite_tile(i + 16, 20); // Use the white king sprite tile
-        } else {
-            set_sprite_tile(i + 16, 5); // Use the white regular piece sprite tile
-        }
-        move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
-    }
-}
-int milisecondsToClockCycles(int milliseconds) {
-    return (milliseconds * CLOCKS_PER_SEC) / 1000;
-}
 bool isMoveWithinBoard(UINT8 x, UINT8 y) {
     return (x >= 20 && x <=148 && y >= 20 && y <= 148);
 }
-int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
-    // Check collision for each piece
-    for (int i = 0; i < numOpponentPieces; i++) {
-        UINT8 pieceX = opponentPieces[i].x;
-        UINT8 pieceY = opponentPieces[i].y;
-        if (capturedX == pieceX && capturedY == pieceY) {
-            // Captured piece found, return its index
-            return i;
-        }
-    }
-    // If no collision is found, return -1 to indicate no piece was captured
-    return -1;
-}
-// Function to check if a move is valid
+
 bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
     Piece* pieces;
     Piece* opponentPieces;
@@ -306,6 +311,21 @@ bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
     selectedPieceIndex = -1;
     return false;
 }
+
+int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
+    // Check collision for each piece
+    for (int i = 0; i < numOpponentPieces; i++) {
+        UINT8 pieceX = opponentPieces[i].x;
+        UINT8 pieceY = opponentPieces[i].y;
+        if (capturedX == pieceX && capturedY == pieceY) {
+            // Captured piece found, return its index
+            return i;
+        }
+    }
+    // If no collision is found, return -1 to indicate no piece was captured
+    return -1;
+}
+
 bool hasValidCaptureMoves(UINT8 currentPlayer) {
     Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
     Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
@@ -334,6 +354,7 @@ bool hasValidNonCaptureMoves(UINT8 currentPlayer) {
     }
     return false; // No valid moves found for any piece
 }
+
 bool hasValidMoves(UINT8 currentPlayer) {
     bool hasValidNonCapture = hasValidNonCaptureMoves(currentPlayer);
     bool hasValidCapture = hasValidCaptureMoves(currentPlayer);
@@ -342,6 +363,7 @@ bool hasValidMoves(UINT8 currentPlayer) {
     }
     return false; // Has valid moves
 }
+
 void printTurn() {
     if (hasValidMoves(currentPlayer)){
         if (currentPlayer == BLACK_PLAYER){
@@ -359,6 +381,10 @@ void printTurn() {
         }
         move_win(7, 7);
     }
+}
+
+int milisecondsToClockCycles(int milliseconds) {
+    return (milliseconds * CLOCKS_PER_SEC) / 1000;
 }
 
 void main() {

@@ -10,10 +10,6 @@ add flying king toggle (off by default)
 
 
 
-
-
-
-
 done
 rotate board 180
 fix input lag

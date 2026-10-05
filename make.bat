@@ -5,4 +5,4 @@ cd "misc compiler stuff"                                                        
 move main.gb ..                                                                             &::gets the .gb file out of the messy folder and puts it in the main directory
 cd ..                                                                                       &::sets current directory back to the main one
 rd /s /q "misc compiler stuff"                                                              &::deletes the folder full of excessive compilation files
-cls
+@REM  cls
