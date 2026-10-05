@@ -114,21 +114,23 @@ typedef struct {
     UINT8 y;
     bool isKing; // Field to store whether the piece is a king or not
 } Piece;
+
 Piece blackPieces[MAX_BLACK_PIECES] = {
-    {44, 28}, {76, 28}, {108, 28}, {140, 28},
-    {28, 44}, {60, 44}, {92, 44}, {124, 44},
-    {44, 60}, {76, 60}, {108, 60}, {140, 60}
-};
-Piece whitePieces[MAX_WHITE_PIECES] = {
     {28, 140}, {60, 140}, {92, 140}, {124, 140},
     {44, 124}, {76, 124}, {108, 124}, {140, 124},
     {28, 108}, {60, 108}, {92, 108}, {124, 108}
 };
+
+Piece whitePieces[MAX_WHITE_PIECES] = {
+    {44, 28}, {76, 28}, {108, 28}, {140, 28},
+    {28, 44}, {60, 44}, {92, 44}, {124, 44},
+    {44, 60}, {76, 60}, {108, 60}, {140, 60}
+};
 void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
     for (int i = 0; i < numPieces; i++) {
-        if (pieces[i].y == 28 && player == WHITE_PLAYER) {
+        if (pieces[i].y == 140 && player == WHITE_PLAYER) {
             pieces[i].isKing = true;
-        } else if (pieces[i].y == 140 && player == BLACK_PLAYER) {
+        } else if (pieces[i].y == 28 && player == BLACK_PLAYER) {
             pieces[i].isKing = true;
         }
     }
@@ -247,8 +249,8 @@ bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selected
         return false;
     }
     // Check if the piece is moving forward or backward based on the player's color
-    if ((currentPlayer == BLACK_PLAYER && dy < 0 && !pieces[selectedCoords].isKing) ||
-        (currentPlayer == WHITE_PLAYER && dy > 0 && !pieces[selectedCoords].isKing)) {
+    if ((currentPlayer == BLACK_PLAYER && dy > 0 && !pieces[selectedCoords].isKing) ||
+        (currentPlayer == WHITE_PLAYER && dy < 0 && !pieces[selectedCoords].isKing)) {
         return false;
     }
     // Check if the target position is empty

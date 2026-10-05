@@ -1,0 +1,14 @@
+fix input lag
+fix double moves scaning for all pieces
+
+
+add must capture toggle (on by default)
+add missing capture forfeits piece (off by default)
+make sure the previous two toggles do not conflict
+add capture backwards toggle (off by default)
+
+figure out flying king capture logic
+add flying king toggle (off by default)
+
+done
+rotate board 180
