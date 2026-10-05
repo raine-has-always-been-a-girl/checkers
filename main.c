@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <gbdk/font.h>
 #include <time.h>
-// #include <basetsd.h> //the compiler only works without this. it just prevents vscode from screaming at me about UINT8 being undefined
 
 #define BLACK_PLAYER 0
 #define WHITE_PLAYER 1
@@ -17,12 +16,12 @@
 #define DEBOUNCE_DELAY 100 // amount of time inbetween cursor moves (in milliseconds) when holding the dpad
 UBYTE lastButtonState = 0; // Variable to store the previous button state
 clock_t debounceClock = 0; // Variable to track the time since the last button press
-int selectedPieceIndex = -1;
-
-UINT8 cursorx = 32;
-UINT8 cursory = 32;
 UBYTE joypad_input;
-UINT8 currentPlayer = BLACK_PLAYER;
+
+int selectedPieceIndex = -1;
+unsigned char cursorx = 28;
+unsigned char cursory = 28;
+unsigned char currentPlayer = BLACK_PLAYER;
 int selectedCoords = 0;
 bool pieceSelected = false;
 
@@ -118,8 +117,8 @@ unsigned char board [8][8] = {
 };
 
 typedef struct {
-    UINT8 x;
-    UINT8 y;
+    unsigned char x;
+    unsigned char y;
     bool isKing; // Field to store whether the piece is a king or not
 } Piece;
 
@@ -135,21 +134,28 @@ Piece whitePieces[MAX_WHITE_PIECES] = {
     {44, 60}, {76, 60}, {108, 60}, {140, 60}
 };
 
-void font() {
+void font(void) {
     font_t min_font;
     font_init();
     min_font = font_load(font_ibm_fixed);
     font_set(min_font);
 }
 
-void printbkg() {
+void printbkg(void) {
     set_bkg_data(1, 1, tile1);
     set_bkg_data(2, 1, tile2);
     set_bkg_data(3, 1, tile3);
     set_bkg_tiles(0, 0, 20, 18, map);
 }
 
-void printSquare() {
+void moveCursor(void) {
+      move_sprite(0, cursorx - 4, cursory - 4);
+      move_sprite(1, cursorx + 4, cursory - 4);
+      move_sprite(2, cursorx - 4, cursory + 4);
+      move_sprite(3, cursorx + 4, cursory + 4);
+}
+
+void printCursor(void) {
     set_sprite_data(0, 1, squareTL);
     set_sprite_data(1, 1, squareTR);
     set_sprite_data(2, 1, squareBL);
@@ -158,10 +164,10 @@ void printSquare() {
     set_sprite_tile(1, 1);
     set_sprite_tile(2, 2);
     set_sprite_tile(3, 3);
-    moveSquare();
+    moveCursor();
 }
 
-void printBlack() {
+void printBlack(void) {
     set_sprite_data(4, 12, black_piece);
     set_sprite_data(8, 12, blackKing);
 
@@ -175,7 +181,7 @@ void printBlack() {
     }
 }
 
-void printWhite() {
+void printWhite(void) {
     set_sprite_data(5, 12, white_piece);
     set_sprite_data(20, 12, whiteKing);
 
@@ -189,7 +195,7 @@ void printWhite() {
     }
 }
 
-void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
+void promoteToKing(Piece* pieces, int numPieces, unsigned char player) {
     for (int i = 0; i < numPieces; i++) {
         if (pieces[i].y == 140 && player == WHITE_PLAYER) {
             pieces[i].isKing = true;
@@ -199,14 +205,7 @@ void promoteToKing(Piece* pieces, int numPieces, UINT8 player) {
     }
 }
 
-void moveSquare() {
-      move_sprite(0, cursorx - 8, cursory - 8);
-      move_sprite(1, cursorx + 0, cursory - 8);
-      move_sprite(2, cursorx - 8, cursory + 0);
-      move_sprite(3, cursorx + 0, cursory + 0);
-}
-
-void dpad() {
+void dpad(void) {
     if (joypad_input & J_RIGHT) {
         cursorx = cursorx + SQUARE_SIZE;
     }
@@ -219,14 +218,14 @@ void dpad() {
     if (joypad_input & J_DOWN) {
         cursory = cursory + SQUARE_SIZE;
     }
-    moveSquare();
+    moveCursor();
 }
 
-bool isMoveWithinBoard(UINT8 x, UINT8 y) {
+bool isMoveWithinBoard(unsigned char x, unsigned char y) {
     return (x >= 20 && x <=148 && y >= 20 && y <= 148);
 }
 
-bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selectedCoords) {
+bool isValidMove(unsigned char cursorx, unsigned char cursory, unsigned char currentPlayer, int selectedCoords) {
     Piece* pieces;
     Piece* opponentPieces;
     int numPieces;
@@ -279,7 +278,7 @@ bool isValidMove(UINT8 cursorx, UINT8 cursory, UINT8 currentPlayer, int selected
     return true;
 }
 // Function to check collision between cursor and pieces
-bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
+bool checkCollision(unsigned char cursorx, unsigned char cursory, int currentPlayer) {
     int numPieces;
     Piece* pieces;
     // Set the correct piece array based on the current player
@@ -292,8 +291,8 @@ bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
     }
     // Check collision for each piece
     for (int i = 0; i < numPieces; i++) {
-        UINT8 pieceX = pieces[i].x;
-        UINT8 pieceY = pieces[i].y;
+        unsigned char pieceX = pieces[i].x;
+        unsigned char pieceY = pieces[i].y;
         // Check for collision by comparing boundaries
         if (cursorx == (pieceX) &&
             cursory == (pieceY)) {
@@ -312,11 +311,11 @@ bool checkCollision(UINT8 cursorx, UINT8 cursory, int currentPlayer) {
     return false;
 }
 
-int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int numOpponentPieces) {
+int getCaptureIndex(unsigned char capturedX, unsigned char capturedY, Piece* opponentPieces, int numOpponentPieces) {
     // Check collision for each piece
     for (int i = 0; i < numOpponentPieces; i++) {
-        UINT8 pieceX = opponentPieces[i].x;
-        UINT8 pieceY = opponentPieces[i].y;
+        unsigned char pieceX = opponentPieces[i].x;
+        unsigned char pieceY = opponentPieces[i].y;
         if (capturedX == pieceX && capturedY == pieceY) {
             // Captured piece found, return its index
             return i;
@@ -326,7 +325,7 @@ int getCaptureIndex(UINT8 capturedX, UINT8 capturedY, Piece* opponentPieces, int
     return -1;
 }
 
-bool hasValidCaptureMoves(UINT8 currentPlayer) {
+bool hasValidCaptureMoves(unsigned char currentPlayer) {
     Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
     Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
     int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
@@ -341,7 +340,7 @@ bool hasValidCaptureMoves(UINT8 currentPlayer) {
     }
     return false; // No valid capture moves found for any piece
 }
-bool hasValidNonCaptureMoves(UINT8 currentPlayer) {
+bool hasValidNonCaptureMoves(unsigned char currentPlayer) {
     Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
     int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
     for (int i = 0; i < numPieces; i++) {
@@ -355,7 +354,7 @@ bool hasValidNonCaptureMoves(UINT8 currentPlayer) {
     return false; // No valid moves found for any piece
 }
 
-bool hasValidMoves(UINT8 currentPlayer) {
+bool hasValidMoves(unsigned char currentPlayer) {
     bool hasValidNonCapture = hasValidNonCaptureMoves(currentPlayer);
     bool hasValidCapture = hasValidCaptureMoves(currentPlayer);
     if (hasValidNonCapture || hasValidCapture) {
@@ -364,7 +363,7 @@ bool hasValidMoves(UINT8 currentPlayer) {
     return false; // Has valid moves
 }
 
-void printTurn() {
+void printTurn(void) {
     if (hasValidMoves(currentPlayer)){
         if (currentPlayer == BLACK_PLAYER){
             set_win_tiles(2, 0, 16, 1, currentPlayerBlackText);
@@ -387,11 +386,11 @@ int milisecondsToClockCycles(int milliseconds) {
     return (milliseconds * CLOCKS_PER_SEC) / 1000;
 }
 
-void main() {
+void main(void) {
     font();
     printTurn();
     printbkg();
-    printSquare();
+    printCursor();
     printBlack();
     printWhite();
     SHOW_BKG;  
@@ -400,8 +399,7 @@ void main() {
     clock_t debounceClock = clock(); // Initialize the debounce clock with the current time
     while(1) {
         joypad_input = joypad();
-            // Debounce the button input
-        if (joypad_input != lastButtonState) {
+        if (joypad_input != lastButtonState) { // Debounce the button input
             debounceClock = clock(); // Reset the debounce clock
             lastButtonState = joypad_input;
         } else if (clock() - debounceClock >= milisecondsToClockCycles(DEBOUNCE_DELAY)) {
@@ -409,49 +407,50 @@ void main() {
         } else {
             continue; // Skip processing input until the debounce delay is reached
         }
+
         dpad();
+
         if (joypad_input & J_A) {
-            if (pieceSelected == false) {
-                checkCollision(cursorx - 4, cursory - 4, currentPlayer);
-                if (currentPlayer == BLACK_PLAYER) {
-                    if (selectedPieceIndex >= 4 && selectedPieceIndex < 16){
-                        pieceSelected = true;
-                    }
-                } else if (selectedPieceIndex >= 16 && selectedPieceIndex < 28) {
-                    pieceSelected = true;
-                }
-            }
+            pieceSelected = checkCollision(cursorx, cursory, currentPlayer);
         }
+
         while (pieceSelected == true) {
-            delay(100);
-            joypad_input = joypad(); // Update the input inside the loop
+            joypad_input = joypad();
+            if (joypad_input != lastButtonState) { // Debounce the button input
+                debounceClock = clock(); // Reset the debounce clock
+                lastButtonState = joypad_input;
+            } else if (clock() - debounceClock >= milisecondsToClockCycles(DEBOUNCE_DELAY)) {
+                debounceClock = clock(); // Reset the debounce clock
+            } else {
+                continue; // Skip processing input until the debounce delay is reached
+            }
+
             dpad();
-            move_sprite(selectedPieceIndex, cursorx - 4, cursory - 4);
+
+            move_sprite(selectedPieceIndex, cursorx, cursory);
+            
             if (joypad_input & J_A) {
-                Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;
-                Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
-                int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
-                int numOpponentPieces = (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES;
-                // Calculate the distance moved in x and y direction
-                int dx = (cursorx - 4) - pieces[selectedCoords].x;
-                int dy = (cursory - 4) - pieces[selectedCoords].y;
-                if (cursorx - 4 == pieces[selectedCoords].x && cursory - 4 == pieces[selectedCoords].y) {
+                Piece* pieces = (currentPlayer == BLACK_PLAYER) ? blackPieces : whitePieces;                
+                if (cursorx == pieces[selectedCoords].x && cursory == pieces[selectedCoords].y) {
                     //Do nothing
-                } else if (isValidMove(cursorx - 4, cursory - 4, currentPlayer, selectedCoords)) {
+                } else if (isValidMove(cursorx, cursory, currentPlayer, selectedCoords)) {
+                    int numPieces = (currentPlayer == BLACK_PLAYER) ? MAX_BLACK_PIECES : MAX_WHITE_PIECES;
                     if (hasValidCaptureMoves(currentPlayer)) {
+                        // Calculate the distance moved in x and y direction
+                        int dx = cursorx - pieces[selectedCoords].x;
+                        int dy = cursory- pieces[selectedCoords].y;
                         if (abs(dx) == 2 * SQUARE_SIZE || abs(dy) == 2 * SQUARE_SIZE) {
-                            int capturedIndex = getCaptureIndex(((cursorx - 4) - (dx/2)), ((cursory - 4) - (dy/2)), opponentPieces, numOpponentPieces);
+                            Piece* opponentPieces = (currentPlayer == BLACK_PLAYER) ? whitePieces : blackPieces;
+                            int capturedIndex = getCaptureIndex((cursorx - (dx/2)), (cursory - (dy/2)), opponentPieces, (currentPlayer == BLACK_PLAYER) ? MAX_WHITE_PIECES : MAX_BLACK_PIECES);
                             if (capturedIndex != -1) {
                                 opponentPieces[capturedIndex].x = 0;
                                 opponentPieces[capturedIndex].y = 0;
-                                pieces[selectedCoords].x = cursorx - 4; 
-                                pieces[selectedCoords].y = cursory - 4;
+                                pieces[selectedCoords].x = cursorx; 
+                                pieces[selectedCoords].y = cursory;
                                 promoteToKing(pieces, numPieces, currentPlayer);
                                 printBlack();
                                 printWhite();
-                                if (hasValidCaptureMoves(currentPlayer)) {
-                                    // continue the loop
-                                } else {
+                                if (!hasValidCaptureMoves(currentPlayer)) {
                                     if (currentPlayer == BLACK_PLAYER) {
                                         currentPlayer = WHITE_PLAYER;
                                     } else {
@@ -463,17 +462,17 @@ void main() {
                                 }
                             }
                         }
-                    } else if (abs(dx) == 1 * SQUARE_SIZE || abs(dy) == 1 * SQUARE_SIZE) {
-                        pieces[selectedCoords].x = cursorx - 4; 
-                        pieces[selectedCoords].y = cursory - 4;
+                    } else if (abs(cursorx - pieces[selectedCoords].x) == 1 * SQUARE_SIZE || abs(cursory - pieces[selectedCoords].y) == 1 * SQUARE_SIZE) {
+                        pieces[selectedCoords].x = cursorx; 
+                        pieces[selectedCoords].y = cursory;
                         promoteToKing(pieces, numPieces, currentPlayer);
+                        printBlack();
+                        printWhite();
                         if (currentPlayer == BLACK_PLAYER) {
                             currentPlayer = WHITE_PLAYER;
                         } else {
                             currentPlayer = BLACK_PLAYER;
                         }
-                        printBlack();
-                        printWhite();
                         printTurn();
                         pieceSelected = false;
                         break; // Exit the loop after a piece has been moved
