@@ -4,6 +4,8 @@
 #include <types.h>
 #include <stdlib.h>
 #include <gbdk/font.h>
+#include <time.h>
+// #include <basetsd.h> //the compiler only works without this. it just prevents vscode from screaming at me about UINT8 being undefined
 
 #define BLACK_PLAYER 0
 #define WHITE_PLAYER 1
@@ -12,9 +14,9 @@
 #define SQUARE_SIZE 16
 #define SPRITE_TILE_BLACK 4
 #define SPRITE_TILE_WHITE 16
-#define DEBOUNCE_DELAY 6 // Adjust this value based on your requirements (in milliseconds)
+#define DEBOUNCE_DELAY 100 // Adjust this value based on your requirements (in milliseconds)
 UBYTE lastButtonState = 0; // Variable to store the previous button state
-UINT16 debounceTimer = 0; // Variable to track the time since the last button press
+clock_t debounceClock = 0; // Variable to track the time since the last button press
 int selectedPieceIndex = -1;
 
 UINT8 cursorx = 32;
@@ -199,6 +201,9 @@ void printWhite() {
         move_sprite(i + 16, whitePieces[i].x, whitePieces[i].y);
     }
 }
+int milisecondsToClockCycles(int milliseconds) {
+    return (milliseconds * CLOCKS_PER_SEC) / 1000;
+}
 bool isMoveWithinBoard(UINT8 x, UINT8 y) {
     return (x >= 20 && x <=148 && y >= 20 && y <= 148);
 }
@@ -366,14 +371,16 @@ void main() {
     SHOW_BKG;  
     SHOW_SPRITES;
     SHOW_WIN;
+    clock_t debounceClock = clock(); // Initialize the debounce clock with the current time
     while(1) {
         joypad_input = joypad();
             // Debounce the button input
         if (joypad_input != lastButtonState) {
-            debounceTimer = 0; // Reset the debounce timer
+            debounceClock = clock(); // Reset the debounce clock
             lastButtonState = joypad_input;
-        } else if (debounceTimer < DEBOUNCE_DELAY) {
-            debounceTimer += 100; // Increment the debounce timer based on the loop delay (100ms in this code)
+        } else if (clock() - debounceClock >= milisecondsToClockCycles(DEBOUNCE_DELAY)) {
+            debounceClock = clock(); // Reset the debounce clock
+        } else {
             continue; // Skip processing input until the debounce delay is reached
         }
         dpad();
@@ -454,6 +461,5 @@ void main() {
                 break;
             }
         }
-    delay(100);
     }
 }
