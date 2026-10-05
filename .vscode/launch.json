@@ -7,7 +7,25 @@
         {
             "type": "emulicious-debugger",
             "request": "launch",
-            "name": "Launch in Emulicious",
+            "name": "Launch in Emulicious (with Java32)",
+            "emuliciousPath": "${workspaceFolder}/emulicious-with-Java32/emulicious.jar",
+            "program": "${workspaceFolder}/main.gb",            
+            "port": 58870,
+            "stopOnEntry": true
+        },
+        {
+            "type": "emulicious-debugger",
+            "request": "launch",
+            "name": "Launch in Emulicious (with Java64)",
+            "emuliciousPath": "${workspaceFolder}/emulicious-with-Java64/emulicious.jar",
+            "program": "${workspaceFolder}/main.gb",            
+            "port": 58870,
+            "stopOnEntry": true
+        },
+        {
+            "type": "emulicious-debugger",
+            "request": "launch",
+            "name": "Launch in Emulicious (Java is already installed)",
             "emuliciousPath": "${workspaceFolder}/emulicious/emulicious.jar",
             "program": "${workspaceFolder}/main.gb",
             "port": 58870,
