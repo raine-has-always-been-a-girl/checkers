@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <types.h>
 #include <stdlib.h>
 #include <gbdk/font.h>
 
